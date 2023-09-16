@@ -26,13 +26,15 @@ namespace Board
     std::vector<Move::Move> getAllQueenMoves();
     std::vector<Move::Move> getAllKingMoves();
 
+    Move::Move checkIfAmbiguous(const std::vector<Move::Move> &checkedMoves);
+
     Move::Move isValidMove(const Move::Move &move);
-    Move::Move isValidPawnMove(const Move::Move &move);
-    std::vector<Move::Move> isValidKnightMove(const Move::Move &move);
-    Move::Move isValidBishopMove(const Move::Move &move);
-    Move::Move isValidRookMove(const Move::Move &move);
-    Move::Move isValidQueenMove(const Move::Move &move);
-    Move::Move isValidKingMove(const Move::Move &move);
+    std::vector<Move::Move> getValidKnightMoves(const Move::Move &move);
+    std::vector<Move::Move> getValidPawnMoves(const Move::Move &move);
+    std::vector<Move::Move> getValidBishopMoves(const Move::Move &move);
+    std::vector<Move::Move> getValidRookMoves(const Move::Move &move);
+    std::vector<Move::Move> getValidQueenMoves(const Move::Move &move);
+    std::vector<Move::Move> getValidKingMoves(const Move::Move &move);
 
     std::pair<bool, Move::Move> checkForPromotion(const Move::Move &move);
     std::pair<bool, Move::Move> checkForEnPassant(const Move::Move &move);
