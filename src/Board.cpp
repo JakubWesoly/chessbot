@@ -60,13 +60,13 @@ namespace Board
     std::vector<Move::Move> moves = {};
     std::vector<Move::Move> pawnMoves = getAllPawnMoves();
     std::vector<Move::Move> knightMoves = getAllKnightMoves();
-    // std::vector<Move::Move> bishopMoves = getAllBishopMoves();
+    std::vector<Move::Move> bishopMoves = getAllBishopMoves();
     // std::vector<Move::Move> rookMoves = getAllRookMoves();
     // std::vector<Move::Move> queenMoves = getAllQueenMoves();
     // std::vector<Move::Move> kingMoves = getAllKingMoves();
     moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
     moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
-    // moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
+    moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
     // moves.insert(moves.end(), rookMoves.begin(), rookMoves.end());
     // moves.insert(moves.end(), queenMoves.begin(), queenMoves.end());
     // moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
@@ -207,6 +207,24 @@ namespace Board
     return moves;
   }
 
+  std::vector<Move::Move> Board::getAllBishopMoves()
+  {
+    std::vector<Move::Move> moves;
+    for (int i = 0; i < 64; i++)
+    {
+      if (board[i] == (Board::BISHOP | !isWhiteTurn))
+      {
+        std::vector<std::pair<int, bool>> fromList = getDiagonalMoves(i);
+        for (auto [to, isCapture] : fromList)
+        {
+          // std::cout << "from: " << from << " | to: " << i << " | isCapture: " << isCapture << std::endl;
+          moves.push_back(Move::Move(i, to, Move::PieceType::BISHOP, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
+        }
+      }
+    }
+    return moves;
+  }
+
   Move::Move Board::checkIfAmbiguous(const std::vector<Move::Move> &checkedMoves)
   {
     switch (checkedMoves.size())
@@ -220,9 +238,9 @@ namespace Board
       return Move::Move(false);
     }
   }
+
   Move::Move Board::isValidMove(const Move::Move &move)
   {
-
     std::vector<Move::Move> checkedMoves;
     switch (move.pieceType)
     {
@@ -392,21 +410,12 @@ namespace Board
         }
         else
         {
-          if ((!board[move.to] && board[move.to] & 0))
+          if ((board[move.to] & Board::COLOR))
             continue;
           else
             appendedMoveTypes.push_back(Move::MoveTypes::CAPTURE);
         }
       }
-      // else
-      // {
-      //   if (isWhiteTurn && ((board[move.to] & Board::COLOR)) != 1)
-      //     continue;
-      //   else if (!isWhiteTurn && ((board[move.to] & Board::COLOR) != 0))
-      //     continue;
-
-      //   appendedMoveTypes.push_back(Move::MoveTypes::CAPTURE);
-      // }
 
       if (from + move.to < 0 || move.to < 0 || move.to >= 64 || from < 0 || from >= 64)
       {
@@ -435,6 +444,7 @@ namespace Board
 
   std::vector<Move::Move> Board::getValidBishopMoves(const Move::Move &move)
   {
+    std::vector<Move::Move> result = {};
 
     bool isCapture = std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::CAPTURE) != move.moveTypes.end();
 
@@ -480,6 +490,8 @@ namespace Board
 
   std::vector<Move::Move> Board::getValidRookMoves(const Move::Move &move)
   {
+    std::vector<Move::Move> result = {};
+
     bool isCapture = std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::CAPTURE) != move.moveTypes.end();
 
     int from = checkVerticalAndHorizontal(move.to, Move::PieceType::ROOK, isCapture);
@@ -519,7 +531,9 @@ namespace Board
         return {};
     }
 
-    return {Move::Move(from, move.to, Move::PieceType::ROOK, {})};
+    // return {Move::Move(from, move.to, Move::PieceType::ROOK, {})};
+
+    return result;
   }
 
   std::vector<Move::Move> Board::getValidQueenMoves(const Move::Move &move)
@@ -528,10 +542,10 @@ namespace Board
 
     int from = checkVerticalAndHorizontal(move.to, Move::PieceType::QUEEN, isCapture);
 
-    if (from == -1)
-    {
-      from = checkDiagonal(move.to, Move::PieceType::QUEEN, isCapture);
-    }
+    // if (from == -1)
+    // {
+    //   from = checkDiagonal(move.to, Move::PieceType::QUEEN, isCapture);
+    // }
 
     if (from == -1)
     {
@@ -886,6 +900,7 @@ namespace Board
 
   int Board::checkDiagonal(int square, Move::PieceType type, bool isCapture, bool reverseColor)
   {
+
     int offsets[] = {Board::UP_RIGHT, Board::DOWN_RIGHT, Board::DOWN_LEFT, Board::UP_LEFT};
 
     for (int offset : offsets)
@@ -895,7 +910,6 @@ namespace Board
         if (board[i] == (type | (reverseColor ? isWhiteTurn : !isWhiteTurn)))
         {
           return i;
-          break;
         }
         else if ((!isCapture && board[i] != 0) || (isCapture && board[i] != 0 && i != square))
         {
@@ -928,6 +942,43 @@ namespace Board
     }
 
     return -1;
+  }
+
+  std::vector<std::pair<int, bool>> Board::getDiagonalMoves(int square)
+  {
+    std::vector<std::pair<int, bool>> results = {};
+    int offsets[] = {Board::UP_RIGHT, Board::DOWN_RIGHT, Board::DOWN_LEFT, Board::UP_LEFT};
+
+    for (int offset : offsets)
+    {
+      for (int i = square; i >= 0 && i < 64; i += offset)
+      {
+        if (i == square)
+          continue;
+        if (checkIfCrossesBorder(i, i - offset))
+          break;
+        if (board[i] != Board::NONE)
+        {
+          if (isWhiteTurn && (board[i] & !Board::COLOR) || !isWhiteTurn && (board[i] & Board::COLOR))
+            break;
+          else if (isWhiteTurn && (board[i] & Board::COLOR) || !isWhiteTurn && (board[i] & !Board::COLOR))
+          {
+            results.push_back({i, true});
+            break;
+          }
+          else
+          {
+            break;
+          }
+        }
+        else
+        {
+          results.push_back({i, false});
+        }
+      }
+    }
+
+    return results;
   }
 
   std::vector<int> Board::checkKnightMoves(int square, bool reverseColor)
@@ -973,17 +1024,17 @@ namespace Board
 
   int Board::isSquareControled(int square)
   {
-    int bishop = checkDiagonal(square, Move::PieceType::BISHOP, false, true);
-    if (bishop != -1)
-      return bishop;
+    // int bishop = checkDiagonal(square, Move::PieceType::BISHOP, false, true);
+    // if (bishop != -1)
+    //   return bishop;
     int rook = checkVerticalAndHorizontal(square, Move::PieceType::ROOK, false, true);
     if (rook != -1)
       return rook;
-    int queen = checkVerticalAndHorizontal(square, Move::PieceType::QUEEN, false, true);
-    if (queen == -1)
-      queen = checkDiagonal(square, Move::PieceType::QUEEN, false, true);
-    if (queen != -1)
-      return queen;
+    // int queen = checkVerticalAndHorizontal(square, Move::PieceType::QUEEN, false, true);
+    // if (queen == -1)
+    //   queen = checkDiagonal(square, Move::PieceType::QUEEN, false, true);
+    // if (queen != -1)
+    //   return queen;
     // int knight = checkKnightMoves(square, true);
     // if (knight != -1)
     //   return knight;
@@ -1090,6 +1141,11 @@ namespace Board
     }
 
     return true;
+  }
+
+  bool Board::checkIfCrossesBorder(int square1, int square2)
+  {
+    return (abs(square1 / 8 - square2 / 8) > 1) || (abs(square1 % 8 - square2 % 8) > 1);
   }
 
   int Board::getSquare(std::string square)

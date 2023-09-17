@@ -54,6 +54,10 @@ namespace Board
     int checkKingMoves(int square);
     int checkPawnMoves(int square);
 
+    std::vector<std::pair<int, bool>> getDiagonalMoves(int square);
+
+    bool checkIfCrossesBorder(int square1, int square2);
+
     int getSquare(std::string square);
     int isSquareControled(int square);
     bool isInCheck();
