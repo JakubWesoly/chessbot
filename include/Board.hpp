@@ -49,12 +49,13 @@ namespace Board
     bool makeRegularMove(const Move::Move &move);
 
     int checkDiagonal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
-    int checkVerticalAndHorizontal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
+    std::vector<int> checkVerticalAndHorizontal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
     std::vector<int> checkKnightMoves(int square, bool reverseColor = false);
     int checkKingMoves(int square);
     int checkPawnMoves(int square);
 
     std::vector<std::pair<int, bool>> getDiagonalMoves(int square);
+    std::vector<std::pair<int, bool>> getVerticalAndHorizontalMoves(int square);
 
     bool checkIfCrossesBorder(int square1, int square2);
 

@@ -54,7 +54,7 @@ namespace Move
     void setPieceType(const std::string &move);
     void check_and_set_castle(const std::string &move);
     int getSquareIndex(const std::string &move);
-    std::string toString();
+    std::string toString() const;
   };
 } // namespace Move
 

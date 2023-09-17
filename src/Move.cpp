@@ -155,7 +155,7 @@ namespace Move
     return move[0] - 'a' + 8 * (move[1] - '1');
   }
 
-  std::string Move::toString()
+  std::string Move::toString() const
   {
     std::string move = "";
     switch (pieceType)
