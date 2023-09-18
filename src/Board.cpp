@@ -18,12 +18,16 @@ namespace Board
     {
       board[i] = pieceSet[i];
       board[i + 56] = Board::COLOR | pieceSet[i];
+      pieceSets.first.push_back(pieceSet[i]);
+      pieceSets.second.push_back(pieceSet[i]);
     }
 
     for (int i = 8; i < 16; i++)
     {
       board[i] = Board::PAWN;
       board[i + 40] = Board::COLOR | Board::PAWN;
+      pieceSets.first.push_back(pieceSet[i]);
+      pieceSets.second.push_back(pieceSet[i]);
     }
 
     currentWhiteKingPosition = 4;
@@ -1453,6 +1457,100 @@ namespace Board
   bool Board::checkIfFitsInBoard(int square)
   {
     return square >= 0 && square < 64;
+  }
+
+  void Board::setGameState()
+  {
+    if (isCheckmate())
+      gameState = GameState::CHECKMATE;
+    else if (isStalemate())
+      gameState = GameState::STALEMATE;
+    else if (isFiftyMoveRule())
+      gameState = GameState::FIFTY_MOVE_RULE;
+    else if (isInsufficientMaterial())
+      gameState = GameState::INSUFFICIENT_MATERIAL;
+    else if (isCheck())
+      gameState = GameState::CHECK;
+    else
+      gameState = GameState::IN_PROGRESS;
+  }
+
+  bool Board::isCheckmate()
+  {
+    return possibleMoves == 0 && isCheck();
+  }
+
+  bool Board::isStalemate()
+  {
+    return possibleMoves == 0;
+  }
+
+  bool Board::isCheck()
+  {
+    if (isWhiteTurn)
+    {
+      return isSquareControled(currentWhiteKingPosition) != -1;
+    }
+    else
+    {
+      return isSquareControled(currentBlackKingPosition) != -1;
+    }
+  }
+
+  bool Board::isFiftyMoveRule()
+  {
+    return fiftyMoveRuleCounter >= 50;
+  }
+
+  bool Board::isInsufficientMaterial()
+  {
+    int whitePieces = 0;
+    int blackPieces = 0;
+
+    for (int i = 0; i < 64; i++)
+    {
+      if (board[i] != Board::NONE)
+      {
+        if (board[i] == Board::PAWN || board[i] == (Board::PAWN | Board::COLOR))
+        {
+          return false;
+        }
+        else if (board[i] == Board::ROOK || board[i] == (Board::ROOK | Board::COLOR))
+        {
+          return false;
+        }
+        else if (board[i] == Board::QUEEN || board[i] == (Board::QUEEN | Board::COLOR))
+        {
+          return false;
+        }
+        else if (board[i] == Board::KNIGHT || board[i] == (Board::KNIGHT | Board::COLOR))
+        {
+          if (whitePieces > 1 || blackPieces > 1)
+          {
+            return false;
+          }
+          else
+          {
+            whitePieces++;
+            blackPieces++;
+          }
+        }
+        else if (board[i] == Board::BISHOP || board[i] == (Board::BISHOP | Board::COLOR))
+        {
+          if (whitePieces > 1 || blackPieces > 1)
+          {
+            return false;
+          }
+          else
+          {
+            whitePieces++;
+            blackPieces++;
+          }
+        }
+      }
+    }
+
+    return true;
   }
 
   int Board::getSquare(std::string square)

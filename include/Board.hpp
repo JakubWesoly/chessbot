@@ -12,6 +12,7 @@ namespace Board
   enum class GameState
   {
     IN_PROGRESS,
+    CHECK,
     CHECKMATE,
     STALEMATE,
     THREEFOLD_REPETITION,
@@ -120,6 +121,15 @@ namespace Board
     int checkIfControledByEnemyPawn(int square);
     int checkPawnMoves(int square);
 
+    void setGameState();
+    bool isCheckmate();
+    bool isCheck();
+    bool isStalemate();
+    bool isThreefoldRepetition();
+    bool isFiftyMoveRule();
+    bool isInsufficientMaterial();
+    bool isResignation();
+
     std::vector<std::pair<int, bool>> getDiagonalMoves(int square);
     std::vector<std::pair<int, bool>> getVerticalAndHorizontalMoves(int square);
 
@@ -128,7 +138,6 @@ namespace Board
 
     int getSquare(std::string square);
     int isSquareControled(int square);
-    bool isInCheck();
 
     void setToDefault();
 
@@ -147,6 +156,10 @@ namespace Board
     int currentBlackKingPosition;
 
     GameState gameState = GameState::IN_PROGRESS;
+    std::pair<std::vector<int>, std::vector<int>> pieceSets;
+
+    int possibleMoves = -1;
+    int fiftyMoveRuleCounter = 0;
 
     bool isWhiteTurn = true;
 
