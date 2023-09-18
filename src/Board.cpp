@@ -32,25 +32,27 @@ namespace Board
 
   bool Board::makeMove(const Move::Move &move)
   {
-    Move::Move chechedMove = isValidMove(move);
-    if (!chechedMove.isVaild)
+    Move::Move checkedMove = isValidMove(move);
+
+    if (!checkedMove.isVaild)
       return false;
     bool isValidMove;
-    if (std::find(chechedMove.moveTypes.begin(), chechedMove.moveTypes.end(), Move::MoveTypes::SHORT_CASTLE) != chechedMove.moveTypes.end())
+
+    if (std::find(checkedMove.moveTypes.begin(), checkedMove.moveTypes.end(), Move::MoveTypes::SHORT_CASTLE) != checkedMove.moveTypes.end())
     {
       return makeShortCastle();
     }
-    else if (std::find(chechedMove.moveTypes.begin(), chechedMove.moveTypes.end(), Move::MoveTypes::LONG_CASTLE) != chechedMove.moveTypes.end())
+    else if (std::find(checkedMove.moveTypes.begin(), checkedMove.moveTypes.end(), Move::MoveTypes::LONG_CASTLE) != checkedMove.moveTypes.end())
     {
       return makeLongCastle();
     }
     else
     {
-      isValidMove = makeRegularMove(chechedMove);
+      isValidMove = makeRegularMove(checkedMove);
     }
     if (!isValidMove)
       return false;
-    moveHistory.push_back(chechedMove);
+    moveHistory.push_back(checkedMove);
     isWhiteTurn = !isWhiteTurn;
     return true;
   }
@@ -63,14 +65,14 @@ namespace Board
     std::vector<Move::Move> bishopMoves = getAllBishopMoves();
     std::vector<Move::Move> rookMoves = getAllRookMoves();
     std::vector<Move::Move> queenMoves = getAllQueenMoves();
-    // std::vector<Move::Move> kingMoves = getAllKingMoves();
+    std::vector<Move::Move> kingMoves = getAllKingMoves();
 
     moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
     moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
     moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
     moves.insert(moves.end(), rookMoves.begin(), rookMoves.end());
     moves.insert(moves.end(), queenMoves.begin(), queenMoves.end());
-    // moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
+    moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
 
     return moves;
   }
@@ -176,7 +178,6 @@ namespace Board
             Move::Move checkedMove = isValidMove(move);
             if (checkedMove.isVaild)
             {
-              // std::cout << checkedMove.toString() << std::endl;
               moves.push_back(checkedMove);
             }
           }
@@ -219,7 +220,6 @@ namespace Board
         std::vector<std::pair<int, bool>> fromList = getDiagonalMoves(i);
         for (auto [to, isCapture] : fromList)
         {
-          // std::cout << "from: " << from << " | to: " << i << " | isCapture: " << isCapture << std::endl;
           moves.push_back(Move::Move(i, to, Move::PieceType::BISHOP, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
         }
       }
@@ -237,7 +237,6 @@ namespace Board
         std::vector<std::pair<int, bool>> fromList = getVerticalAndHorizontalMoves(i);
         for (auto [to, isCapture] : fromList)
         {
-          // std::cout << "from: " << from << " | to: " << i << " | isCapture: " << isCapture << std::endl;
           moves.push_back(Move::Move(i, to, Move::PieceType::ROOK, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
         }
       }
@@ -256,13 +255,11 @@ namespace Board
 
         for (auto [to, isCapture] : fromList)
         {
-          // std::cout << "from: " << from << " | to: " << i << " | isCapture: " << isCapture << std::endl;
           moves.push_back(Move::Move(i, to, Move::PieceType::QUEEN, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
         }
         fromList = getVerticalAndHorizontalMoves(i);
         for (auto [to, isCapture] : fromList)
         {
-          // std::cout << "from: " << from << " | to: " << i << " | isCapture: " << isCapture << std::endl;
           moves.push_back(Move::Move(i, to, Move::PieceType::QUEEN, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
         }
       }
@@ -272,7 +269,57 @@ namespace Board
 
   std::vector<Move::Move> Board::getAllKingMoves()
   {
-    return {};
+    std::vector<Move::Move> moves;
+
+    int possibleMoves[] = {Board::UP, Board::DOWN, Board::LEFT, Board::RIGHT, Board::UP_LEFT, Board::UP_RIGHT, Board::DOWN_LEFT, Board::DOWN_RIGHT};
+    int size = sizeof(possibleMoves) / sizeof(possibleMoves[0]);
+    for (int i = 0; i < size; i++)
+    {
+      if (isWhiteTurn && (!checkIfFitsInBoard(currentWhiteKingPosition + possibleMoves[i])) ||
+          !isWhiteTurn && (!checkIfFitsInBoard(currentBlackKingPosition + possibleMoves[i])))
+        continue;
+
+      if (isWhiteTurn && checkIfCrossesBorder(currentWhiteKingPosition, currentWhiteKingPosition + possibleMoves[i]) ||
+          !isWhiteTurn && checkIfCrossesBorder(currentBlackKingPosition, currentBlackKingPosition + possibleMoves[i]))
+        continue;
+
+      if (isWhiteTurn && isSquareControled(currentWhiteKingPosition + possibleMoves[i]) != -1 ||
+          !isWhiteTurn && isSquareControled(currentBlackKingPosition + possibleMoves[i]) != -1)
+      {
+        continue;
+      }
+
+      if (isWhiteTurn)
+      {
+        if (board[currentWhiteKingPosition + possibleMoves[i]] == Board::NONE)
+        {
+          moves.push_back(Move::Move(currentWhiteKingPosition, currentWhiteKingPosition + possibleMoves[i], Move::PieceType::KING, {}));
+        }
+        else
+        {
+          if ((board[currentWhiteKingPosition + possibleMoves[i]] & Board::COLOR))
+          {
+            moves.push_back(Move::Move(currentWhiteKingPosition, currentWhiteKingPosition + possibleMoves[i], Move::PieceType::KING, {Move::MoveTypes::CAPTURE}));
+          }
+        }
+      }
+      else
+      {
+        if (board[currentBlackKingPosition + possibleMoves[i]] == Board::NONE)
+        {
+          moves.push_back(Move::Move(currentBlackKingPosition, currentBlackKingPosition + possibleMoves[i], Move::PieceType::KING, {}));
+        }
+        else
+        {
+          if ((board[currentBlackKingPosition + possibleMoves[i]] & !Board::COLOR))
+          {
+            moves.push_back(Move::Move(currentBlackKingPosition, currentBlackKingPosition + possibleMoves[i], Move::PieceType::KING, {Move::MoveTypes::CAPTURE}));
+          }
+        }
+      }
+    }
+
+    return moves;
   }
 
   Move::Move Board::checkIfAmbiguous(const std::vector<Move::Move> &checkedMoves)
@@ -386,7 +433,6 @@ namespace Board
         // Check for a move two squares forward
         if (targetSquare >= 24 && targetSquare <= 31)
         {
-          // std::cout << targetSquare - 16 << std::endl;
           if (board[targetSquare + Board::DOWN] == Board::PAWN)
           {
             return {Move::Move(targetSquare + Board::DOWN, targetSquare, Move::PieceType::PAWN, {})};
@@ -474,7 +520,6 @@ namespace Board
       // Check if knight jump doesnt jump over the boards bounds, making him move to the other side of the board
       if (abs(from % 8 - move.to % 8) > 2 || abs(from / 8 - move.to / 8) > 2)
       {
-        // std::cout << "out of bounds | from: " << from << " | to: " << move.to << " | result: " << abs(from % 8 - move.to % 8) << std::endl;
         continue;
       }
       if (isWhiteTurn)
@@ -726,7 +771,6 @@ namespace Board
         }
         if (isSquareControled(5) != -1 || isSquareControled(6) != -1)
         {
-          // std::cout << isSquareControled(5) << " ||| " << isSquareControled(6) << std::endl;
           return {};
         }
         return {Move::Move(60, 62, Move::PieceType::KING, {Move::MoveTypes::SHORT_CASTLE})};
@@ -787,44 +831,75 @@ namespace Board
 
     bool isCapture = std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::CAPTURE) != move.moveTypes.end();
 
-    int from = checkKingMoves(move.to);
+    std::vector<Move::Move> result = {};
+    std::vector<int> fromList = {};
 
-    if (from == -1)
+    if (move.from == -1)
     {
-      return {};
+      fromList = checkKingMoves(move.to);
+
+      if (fromList.size() == 0)
+      {
+        return {};
+      }
+    }
+    else
+    {
+      fromList.push_back(move.from);
     }
 
-    if (isCapture)
+    for (int from : fromList)
     {
-      if (isWhiteTurn)
+      if (checkIfCrossesBorder(from, move.to))
+        continue;
+
+      if (isWhiteTurn && isSquareControled(move.to) != -1 || !isWhiteTurn && isSquareControled(move.to) != -1)
+        continue;
+
+      if (isCapture)
       {
-        if (!(board[move.to] & 1))
-          return {};
+        if (isWhiteTurn)
+        {
+          if (!(board[move.to] & Board::COLOR))
+            continue;
+          else
+          {
+            result.push_back(Move::Move(from, move.to, Move::PieceType::KING, {Move::MoveTypes::CAPTURE}));
+            continue;
+          }
+        }
+        else
+        {
+          if ((!board[move.to] && board[move.to] & !Board::COLOR))
+            continue;
+          else
+          {
+            result.push_back(Move::Move(from, move.to, Move::PieceType::KING, {Move::MoveTypes::CAPTURE}));
+            continue;
+          }
+        }
       }
       else
       {
-        if ((!board[move.to] && board[move.to] & 0))
-          return {};
+        if (board[move.to] != Board::NONE)
+          continue;
       }
-    }
-    else
-    {
-      if (board[move.to] != 0)
-        return {};
+
+      if (isWhiteTurn)
+      {
+        if (board[from] != Board::KING)
+          continue;
+      }
+      else
+      {
+        if (board[from] != (Board::KING | Board::COLOR))
+          continue;
+      }
+
+      result.push_back(Move::Move(from, move.to, Move::PieceType::KING, {}));
     }
 
-    if (isWhiteTurn)
-    {
-      if (board[from] != 64)
-        return {};
-    }
-    else
-    {
-      if (board[from] != 65)
-        return {};
-    }
-
-    return {Move::Move(from, move.to, Move::PieceType::KING, {})};
+    return result;
   }
 
   std::pair<bool, Move::Move> Board::checkForPromotion(const Move::Move &move)
@@ -1033,12 +1108,14 @@ namespace Board
     {
       for (int i = square; i >= 0 && i < 64; i += offset)
       {
+        if (checkIfCrossesBorder(i, i - offset))
+          break;
         if (board[i] == (type | (reverseColor ? isWhiteTurn : !isWhiteTurn)))
         {
           results.push_back(i);
           break;
         }
-        else if ((!isCapture && board[i] != 0) || (isCapture && board[i] != 0 && i != square))
+        else if ((!isCapture && board[i] != Board::NONE) || (isCapture && board[i] != Board::NONE && i != square))
         {
           break;
         }
@@ -1057,7 +1134,9 @@ namespace Board
     {
       for (int i = square; i >= 0 && i < 64; i += offset)
       {
-        std::cout << "i: " << i << " | board[i]: " << board[i] << std::endl;
+
+        if (checkIfCrossesBorder(i, i - offset))
+          break;
         if (board[i] == (type | (reverseColor ? isWhiteTurn : !isWhiteTurn)))
         {
           results.push_back(i);
@@ -1162,51 +1241,96 @@ namespace Board
     return results;
   }
 
-  int Board::checkKingMoves(int square)
+  std::vector<int> Board::checkKingMoves(int square)
   {
+    std::vector<int> results = {};
     int offsets[] = {Board::UP, Board::UP_RIGHT, Board::RIGHT, Board::DOWN_RIGHT, Board::DOWN, Board::DOWN_LEFT, Board::LEFT, Board::UP_LEFT};
-
     for (int offset : offsets)
     {
       int target = square + offset;
-      if (target >= 0 && target < 64 && board[target] == (64 | (!isWhiteTurn)))
+      if (target >= 0 && target < 64 && board[target] == (Board::KING | (!isWhiteTurn)))
       {
-        for (int offset2 : offsets)
-        {
-          int target2 = target + offset2;
-          if (target2 >= 0 && target2 < 64 && board[target2] == (64 | (isWhiteTurn)))
-          {
-            return target2;
-            break;
-          }
-        }
-        return target;
-        break;
+        results.push_back(target);
       }
     }
+    return results;
+  }
 
+  int Board::checkIfControledByEnemyKing(int square)
+  {
+    int offsets[] = {Board::UP, Board::UP_RIGHT, Board::RIGHT, Board::DOWN_RIGHT, Board::DOWN, Board::DOWN_LEFT, Board::LEFT, Board::UP_LEFT};
+    for (int offset : offsets)
+    {
+      int target = square + offset;
+      if (target >= 0 && target < 64 && board[target] == (Board::KING | (isWhiteTurn)))
+      {
+        return target;
+      }
+    }
+    return -1;
+  }
+
+  int Board::checkIfControledByEnemyPawn(int square)
+  {
+    if (isWhiteTurn)
+    {
+      if (square >= 0 && square < 64 && board[square + Board::UP_LEFT] == (Board::PAWN | (Board::COLOR)) && !isOnLeftBorder(square))
+      {
+        return square + Board::UP_LEFT;
+      }
+      else if (square >= 0 && square < 64 && board[square + Board::UP_RIGHT] == (Board::PAWN | (Board::COLOR)) && !isOnRightBorder(square))
+      {
+        return square + Board::UP_RIGHT;
+      }
+    }
+    else
+    {
+      if (square >= 0 && square < 64 && board[square + Board::DOWN_LEFT] == (Board::PAWN) && !isOnLeftBorder(square))
+      {
+        return square + Board::DOWN_LEFT;
+      }
+      else if (square >= 0 && square < 64 && board[square + Board::DOWN_RIGHT] == (Board::PAWN) && !isOnRightBorder(square))
+      {
+        return square + Board::DOWN_RIGHT;
+      }
+    }
     return -1;
   }
 
   int Board::isSquareControled(int square)
   {
-    // int bishop = checkDiagonal(square, Move::PieceType::BISHOP, false, true);
-    // if (bishop != -1)
-    //   return bishop;
-    // int rook = checkVerticalAndHorizontal(square, Move::PieceType::ROOK, false, true);
-    // if (rook != -1)
-    //   return rook;
-    // int queen = checkVerticalAndHorizontal(square, Move::PieceType::QUEEN, false, true);
-    // if (queen == -1)
-    //   queen = checkDiagonal(square, Move::PieceType::QUEEN, false, true);
-    // if (queen != -1)
-    //   return queen;
-    // int knight = checkKnightMoves(square, true);
-    // if (knight != -1)
-    //   return knight;
-    // int king = checkKingMoves(square);
-    // if (king != -1)
-    //   return king;
+    std::vector<int> bishop = checkDiagonal(square, Move::PieceType::BISHOP, false, true);
+    if (bishop.size() > 0)
+    {
+      return bishop[0];
+    }
+    std::vector<int> rook = checkVerticalAndHorizontal(square, Move::PieceType::ROOK, false, true);
+    if (rook.size() > 0)
+    {
+      return rook[0];
+    }
+    std::vector<int> queen = checkVerticalAndHorizontal(square, Move::PieceType::QUEEN, false, true);
+    if (queen.size() == 0)
+      queen = checkDiagonal(square, Move::PieceType::QUEEN, false, true);
+    if (queen.size() > 0)
+    {
+      return queen[0];
+    }
+    std::vector<int> knight = checkKnightMoves(square, true);
+    if (knight.size() > 0)
+    {
+      return knight[0];
+    }
+    int king = checkIfControledByEnemyKing(square);
+    if (king != -1)
+    {
+      return king;
+    }
+    int pawn = checkIfControledByEnemyPawn(square);
+    if (pawn != -1)
+    {
+      return pawn;
+    }
     return -1;
   }
 
@@ -1272,7 +1396,8 @@ namespace Board
 
     if (isWhiteTurn)
     {
-      if (isSquareControled(currentBlackKingPosition) != -1)
+      // std::cout << "WK Controlled by: " << isSquareControled(currentWhiteKingPosition) << "\n";
+      if (isSquareControled(currentWhiteKingPosition) != -1)
       {
         board[move.from] = move.pieceType | (!isWhiteTurn);
         board[move.to] = Board::NONE;
@@ -1281,7 +1406,8 @@ namespace Board
     }
     else
     {
-      if (isSquareControled(currentWhiteKingPosition) != -1)
+      // std::cout << "BK Controlled by: " << isSquareControled(currentBlackKingPosition) << "\n";
+      if (isSquareControled(currentBlackKingPosition) != -1)
       {
         board[move.from] = move.pieceType | (!isWhiteTurn);
         board[move.to] = Board::NONE;
@@ -1292,18 +1418,28 @@ namespace Board
     if (std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::EN_PASSANT) != move.moveTypes.end())
     {
       if (isWhiteTurn)
-      {
         board[move.to + Board::DOWN] = Board::NONE;
-      }
       else
-      {
         board[move.to + Board::UP] = Board::NONE;
-      }
     }
 
     if (std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::PROMOTION) != move.moveTypes.end())
     {
       board[move.to] = move.promotionTo | (!isWhiteTurn);
+    }
+
+    if (move.pieceType == Move::PieceType::KING)
+    {
+      if (isWhiteTurn)
+      {
+        hasWhiteKingMoved = true;
+        currentWhiteKingPosition = move.to;
+      }
+      else
+      {
+        hasBlackKingMoved = true;
+        currentBlackKingPosition = move.to;
+      }
     }
 
     return true;
@@ -1312,6 +1448,11 @@ namespace Board
   bool Board::checkIfCrossesBorder(int square1, int square2)
   {
     return (abs(square1 / 8 - square2 / 8) > 1) || (abs(square1 % 8 - square2 % 8) > 1);
+  }
+
+  bool Board::checkIfFitsInBoard(int square)
+  {
+    return square >= 0 && square < 64;
   }
 
   int Board::getSquare(std::string square)

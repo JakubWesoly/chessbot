@@ -9,6 +9,17 @@
 
 namespace Board
 {
+  enum class GameState
+  {
+    IN_PROGRESS,
+    CHECKMATE,
+    STALEMATE,
+    THREEFOLD_REPETITION,
+    FIFTY_MOVE_RULE,
+    INSUFFICIENT_MATERIAL,
+    RESIGNATION
+  };
+
   class Board
   {
   public:
@@ -104,13 +115,16 @@ namespace Board
     std::vector<int> checkDiagonal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
     std::vector<int> checkVerticalAndHorizontal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
     std::vector<int> checkKnightMoves(int square, bool reverseColor = false);
-    int checkKingMoves(int square);
+    std::vector<int> checkKingMoves(int square);
+    int checkIfControledByEnemyKing(int square);
+    int checkIfControledByEnemyPawn(int square);
     int checkPawnMoves(int square);
 
     std::vector<std::pair<int, bool>> getDiagonalMoves(int square);
     std::vector<std::pair<int, bool>> getVerticalAndHorizontalMoves(int square);
 
     bool checkIfCrossesBorder(int square1, int square2);
+    bool checkIfFitsInBoard(int square);
 
     int getSquare(std::string square);
     int isSquareControled(int square);
@@ -131,6 +145,8 @@ namespace Board
 
     int currentWhiteKingPosition;
     int currentBlackKingPosition;
+
+    GameState gameState = GameState::IN_PROGRESS;
 
     bool isWhiteTurn = true;
 
