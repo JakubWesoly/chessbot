@@ -15,17 +15,70 @@ namespace Board
     Board();
     ~Board() = default;
 
+    /**
+     * @brief Checks if move is correct andif so makes a move given in the param
+     *
+     * @param move Object of class Move from Move.hpp
+     * @return true
+     * @return false
+     */
     bool makeMove(const Move::Move &move);
 
+    /**
+     * @brief Gets the all possible moves that can be made in the current state of the game
+     *
+     * @return std::vector<Move::Move>
+     */
     std::vector<Move::Move> getAllValidMoves();
 
+    /**
+     * @brief Helper function for Board::getAllValidMoves, gets all the possible valid pawn moves
+     *
+     * @return std::vector<Move::Move>
+     */
     std::vector<Move::Move> getAllPawnMoves();
+
+    /**
+     * @brief Helper function for Board::getAllValidMoves, gets all the possible valid knight moves
+     *
+     * @return std::vector<Move::Move>
+     */
     std::vector<Move::Move> getAllKnightMoves();
+
+    /**
+     * @brief Helper function for Board::getAllValidMoves, gets all the possible valid bishop moves
+     *
+     * @return std::vector<Move::Move>
+     */
     std::vector<Move::Move> getAllBishopMoves();
+
+    /**
+     * @brief Helper function for Board::getAllValidMoves, gets all the possible valid rook moves
+     *
+     * @return std::vector<Move::Move>
+     */
     std::vector<Move::Move> getAllRookMoves();
+
+    /**
+     * @brief Helper function for Board::getAllValidMoves, gets all the possible valid queen moves
+     *
+     * @return std::vector<Move::Move>
+     */
     std::vector<Move::Move> getAllQueenMoves();
+
+    /**
+     * @brief Helper function for Board::getAllValidMoves, gets all the possible valid king moves
+     *
+     * @return std::vector<Move::Move>
+     */
     std::vector<Move::Move> getAllKingMoves();
 
+    /**
+     * @brief Checks if there are multiple pieces of the same type that can move to the same square, returns Move::Move(false) if no pieces can go to that square or more than one
+     *
+     * @param checkedMoves Vector of moves to be checked
+     * @return Move::Move
+     */
     Move::Move checkIfAmbiguous(const std::vector<Move::Move> &checkedMoves);
 
     Move::Move isValidMove(const Move::Move &move);
@@ -48,7 +101,7 @@ namespace Board
     bool makeLongCastle();
     bool makeRegularMove(const Move::Move &move);
 
-    int checkDiagonal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
+    std::vector<int> checkDiagonal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
     std::vector<int> checkVerticalAndHorizontal(int square, Move::PieceType type, bool isCapture = false, bool reverseColor = false);
     std::vector<int> checkKnightMoves(int square, bool reverseColor = false);
     int checkKingMoves(int square);
