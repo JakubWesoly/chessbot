@@ -303,6 +303,22 @@ namespace Board
   {
     std::vector<Move::Move> moves;
 
+    if (checkShortCastle())
+    {
+      if (isWhiteTurn)
+        moves.push_back(Move::Move(60, 62, Move::PieceType::KING, {Move::MoveTypes::SHORT_CASTLE}));
+      else
+        moves.push_back(Move::Move(4, 6, Move::PieceType::KING, {Move::MoveTypes::SHORT_CASTLE}));
+    }
+
+    if (checkLongCastle())
+    {
+      if (isWhiteTurn)
+        moves.push_back(Move::Move(60, 58, Move::PieceType::KING, {Move::MoveTypes::LONG_CASTLE}));
+      else
+        moves.push_back(Move::Move(4, 2, Move::PieceType::KING, {Move::MoveTypes::LONG_CASTLE}));
+    }
+
     int possibleMoves[] = {Board::UP, Board::DOWN, Board::LEFT, Board::RIGHT, Board::UP_LEFT, Board::UP_RIGHT, Board::DOWN_LEFT, Board::DOWN_RIGHT};
     int size = sizeof(possibleMoves) / sizeof(possibleMoves[0]);
     for (int i = 0; i < size; i++)
@@ -1391,6 +1407,42 @@ namespace Board
     return -1;
   }
 
+  bool Board::checkShortCastle()
+  {
+    if (isWhiteTurn)
+    {
+      if (hasWhiteKingMoved || hasWhiteRookHMoved)
+      {
+        return false;
+      }
+      if (board[5] != 0 || board[6] != 0)
+      {
+        return false;
+      }
+      if (isSquareControled(5) != -1 || isSquareControled(6) != -1)
+      {
+        return false;
+      }
+      return true;
+    }
+    else
+    {
+      if (hasBlackKingMoved || hasBlackRookHMoved)
+      {
+        return false;
+      }
+      if (board[61] != 0 || board[62] != 0)
+      {
+        return false;
+      }
+      if (isSquareControled(61) != -1 || isSquareControled(62) != -1)
+      {
+        return false;
+      }
+      return true;
+    }
+  }
+
   bool Board::makeShortCastle()
   {
     if (isWhiteTurn)
@@ -1415,6 +1467,42 @@ namespace Board
     }
     isWhiteTurn = !isWhiteTurn;
     return true;
+  }
+
+  bool Board::checkLongCastle()
+  {
+    if (isWhiteTurn)
+    {
+      if (hasWhiteKingMoved || hasWhiteRookAMoved)
+      {
+        return false;
+      }
+      if (board[3] != 0 || board[2] != 0 || board[1] != 0)
+      {
+        return false;
+      }
+      if (isSquareControled(3) != -1 || isSquareControled(2) != -1)
+      {
+        return false;
+      }
+      return true;
+    }
+    else
+    {
+      if (hasBlackKingMoved || hasBlackRookAMoved)
+      {
+        return false;
+      }
+      if (board[59] != 0 || board[58] != 0 || board[57] != 0)
+      {
+        return false;
+      }
+      if (isSquareControled(59) != -1 || isSquareControled(58) != -1)
+      {
+        return false;
+      }
+      return true;
+    }
   }
 
   bool Board::makeLongCastle()
@@ -1562,7 +1650,8 @@ namespace Board
 
   bool Board::isStalemate()
   {
-    return possibleMoves == 0;
+    // TODO: some optimization needed
+    return getAllValidMoves().size() == 0;
   }
 
   bool Board::isCheck()

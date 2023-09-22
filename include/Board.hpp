@@ -109,7 +109,9 @@ namespace Board
     inline bool isOnTopBorder(int square);
     inline bool isOnBottomBorder(int square);
 
+    bool checkShortCastle();
     bool makeShortCastle();
+    bool checkLongCastle();
     bool makeLongCastle();
     bool makeRegularMove(const Move::Move &move);
 

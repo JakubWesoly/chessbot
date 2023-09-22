@@ -175,7 +175,12 @@ namespace Move
       move += "Q";
       break;
     case PieceType::KING:
-      move += "K";
+      if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::SHORT_CASTLE) != moveTypes.end())
+        return "O-O";
+      else if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::LONG_CASTLE) != moveTypes.end())
+        return "O-O-O";
+      else
+        move += "K";
       break;
     default:
       break;
