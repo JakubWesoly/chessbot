@@ -36,6 +36,9 @@ namespace Board
 
   bool Board::makeMove(const Move::Move &move)
   {
+    if (gameState == GameState::CHECKMATE || gameState == GameState::STALEMATE || gameState == GameState::RESIGNATION)
+      return false;
+
     Move::Move checkedMove = isValidMove(move);
 
     if (!checkedMove.isVaild)
@@ -58,6 +61,7 @@ namespace Board
       return false;
     moveHistory.push_back(checkedMove);
     isWhiteTurn = !isWhiteTurn;
+    setGameState();
     return true;
   }
 
@@ -115,6 +119,8 @@ namespace Board
             Move::Move checkedMove = isValidMove(move);
             if (checkedMove.isVaild)
             {
+              if (doesMoveCauseCheck(checkedMove))
+                continue;
               moves.push_back(checkedMove);
             }
           }
@@ -148,6 +154,8 @@ namespace Board
             Move::Move checkedMove = isValidMove(move);
             if (checkedMove.isVaild)
             {
+              if (doesMoveCauseCheck(checkedMove))
+                continue;
               moves.push_back(checkedMove);
             }
           }
@@ -182,6 +190,9 @@ namespace Board
             Move::Move checkedMove = isValidMove(move);
             if (checkedMove.isVaild)
             {
+
+              if (doesMoveCauseCheck(checkedMove))
+                continue;
               moves.push_back(checkedMove);
             }
           }
@@ -205,6 +216,9 @@ namespace Board
             Move::Move checkedMove = isValidMove(move);
             if (checkedMove.isVaild)
             {
+
+              if (doesMoveCauseCheck(checkedMove))
+                continue;
               moves.push_back(checkedMove);
             }
           }
@@ -224,7 +238,10 @@ namespace Board
         std::vector<std::pair<int, bool>> fromList = getDiagonalMoves(i);
         for (auto [to, isCapture] : fromList)
         {
-          moves.push_back(Move::Move(i, to, Move::PieceType::BISHOP, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
+          Move::Move pushedMove = Move::Move(i, to, Move::PieceType::BISHOP, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{}));
+          if (doesMoveCauseCheck(pushedMove))
+            continue;
+          moves.push_back(pushedMove);
         }
       }
     }
@@ -241,7 +258,10 @@ namespace Board
         std::vector<std::pair<int, bool>> fromList = getVerticalAndHorizontalMoves(i);
         for (auto [to, isCapture] : fromList)
         {
-          moves.push_back(Move::Move(i, to, Move::PieceType::ROOK, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
+          Move::Move pushedMove = Move::Move(i, to, Move::PieceType::ROOK, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{}));
+          if (doesMoveCauseCheck(pushedMove))
+            continue;
+          moves.push_back(pushedMove);
         }
       }
     }
@@ -259,12 +279,18 @@ namespace Board
 
         for (auto [to, isCapture] : fromList)
         {
-          moves.push_back(Move::Move(i, to, Move::PieceType::QUEEN, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
+          Move::Move pushedMove = Move::Move(i, to, Move::PieceType::QUEEN, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{}));
+          if (doesMoveCauseCheck(pushedMove))
+            continue;
+          moves.push_back(pushedMove);
         }
         fromList = getVerticalAndHorizontalMoves(i);
         for (auto [to, isCapture] : fromList)
         {
-          moves.push_back(Move::Move(i, to, Move::PieceType::QUEEN, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{})));
+          Move::Move pushedMove = Move::Move(i, to, Move::PieceType::QUEEN, (isCapture ? std::vector<Move::MoveTypes>{Move::MoveTypes::CAPTURE} : std::vector<Move::MoveTypes>{}));
+          if (doesMoveCauseCheck(pushedMove))
+            continue;
+          moves.push_back(pushedMove);
         }
       }
     }
@@ -342,24 +368,40 @@ namespace Board
 
   Move::Move Board::isValidMove(const Move::Move &move)
   {
-    std::vector<Move::Move> checkedMoves;
+    std::vector<Move::Move> checkedMoves = {};
     switch (move.pieceType)
     {
     case Move::PieceType::PAWN:
-      return checkIfAmbiguous(getValidPawnMoves(move));
+      checkedMoves = getValidPawnMoves(move);
+      break;
     case Move::PieceType::KNIGHT:
-      return checkIfAmbiguous(getValidKnightMoves(move));
+      checkedMoves = getValidKnightMoves(move);
+      break;
     case Move::PieceType::BISHOP:
-      return checkIfAmbiguous(getValidBishopMoves(move));
+      checkedMoves = getValidBishopMoves(move);
+      break;
     case Move::PieceType::ROOK:
-      return checkIfAmbiguous(getValidRookMoves(move));
+      checkedMoves = getValidRookMoves(move);
+      break;
     case Move::PieceType::QUEEN:
-      return checkIfAmbiguous(getValidQueenMoves(move));
+      checkedMoves = getValidQueenMoves(move);
+      break;
     case Move::PieceType::KING:
-      return checkIfAmbiguous(getValidKingMoves(move));
+      checkedMoves = getValidKingMoves(move);
+      break;
     default:
       return Move::Move(false);
     }
+
+    Move::Move correctMove = checkIfAmbiguous(checkedMoves);
+
+    if (!correctMove.isVaild)
+      return Move::Move(false);
+
+    if (doesMoveCauseCheck(correctMove))
+      return Move::Move(false);
+
+    return correctMove;
   }
 
   std::vector<Move::Move> Board::getValidPawnMoves(const Move::Move &move)
@@ -1108,12 +1150,17 @@ namespace Board
 
     int offsets[] = {Board::UP_RIGHT, Board::DOWN_RIGHT, Board::DOWN_LEFT, Board::UP_LEFT};
 
+    // std::cout << "CHECKING FOR: " << square << ", which is: " << board[square] << std::endl;
+
     for (int offset : offsets)
     {
-      for (int i = square; i >= 0 && i < 64; i += offset)
+      for (int i = square; checkIfFitsInBoard(i); i += offset)
       {
+        if (i == square)
+          continue;
         if (checkIfCrossesBorder(i, i - offset))
           break;
+        // std::cout << "i: " << i << " | piece: " << board[i] << std::endl;
         if (board[i] == (type | (reverseColor ? isWhiteTurn : !isWhiteTurn)))
         {
           results.push_back(i);
@@ -1138,7 +1185,8 @@ namespace Board
     {
       for (int i = square; i >= 0 && i < 64; i += offset)
       {
-
+        if (i == square)
+          continue;
         if (checkIfCrossesBorder(i, i - offset))
           break;
         if (board[i] == (type | (reverseColor ? isWhiteTurn : !isWhiteTurn)))
@@ -1266,10 +1314,13 @@ namespace Board
     for (int offset : offsets)
     {
       int target = square + offset;
-      if (target >= 0 && target < 64 && board[target] == (Board::KING | (isWhiteTurn)))
-      {
+
+      if (!checkIfFitsInBoard(target))
+        continue;
+
+      if (isWhiteTurn && target == currentBlackKingPosition ||
+          !isWhiteTurn && target == currentWhiteKingPosition)
         return target;
-      }
     }
     return -1;
   }
@@ -1325,11 +1376,11 @@ namespace Board
     {
       return knight[0];
     }
-    int king = checkIfControledByEnemyKing(square);
-    if (king != -1)
-    {
-      return king;
-    }
+    // int king = checkIfControledByEnemyKing(square);
+    // if (king != -1)
+    // {
+    //   return king;
+    // }
     int pawn = checkIfControledByEnemyPawn(square);
     if (pawn != -1)
     {
@@ -1400,7 +1451,7 @@ namespace Board
 
     if (isWhiteTurn)
     {
-      // std::cout << "WK Controlled by: " << isSquareControled(currentWhiteKingPosition) << "\n";
+      std::cout << "WK Controlled by: " << isSquareControled(currentWhiteKingPosition) << "\n";
       if (isSquareControled(currentWhiteKingPosition) != -1)
       {
         board[move.from] = move.pieceType | (!isWhiteTurn);
@@ -1410,7 +1461,7 @@ namespace Board
     }
     else
     {
-      // std::cout << "BK Controlled by: " << isSquareControled(currentBlackKingPosition) << "\n";
+      std::cout << "BK Controlled by: " << isSquareControled(currentBlackKingPosition) << "\n";
       if (isSquareControled(currentBlackKingPosition) != -1)
       {
         board[move.from] = move.pieceType | (!isWhiteTurn);
@@ -1447,6 +1498,33 @@ namespace Board
     }
 
     return true;
+  }
+
+  bool Board::doesMoveCauseCheck(const Move::Move &move)
+  {
+    board[move.from] = Board::NONE;
+
+    std::cout << "MAKING MOVE" << std::endl;
+    if (isWhiteTurn)
+    {
+      if (isSquareControled(currentWhiteKingPosition) != -1)
+      {
+        board[move.from] = move.pieceType;
+        return true;
+      }
+    }
+    else
+    {
+      if (isSquareControled(currentBlackKingPosition) != -1)
+      {
+        board[move.from] = move.pieceType | Board::COLOR;
+        return true;
+      }
+    }
+
+    board[move.from] = move.pieceType | (isWhiteTurn ? Board::COLOR : 0);
+
+    return false;
   }
 
   bool Board::checkIfCrossesBorder(int square1, int square2)
@@ -1551,6 +1629,34 @@ namespace Board
     }
 
     return true;
+  }
+
+  std::string Board::getStringOfGameState() const
+  {
+    switch (gameState)
+    {
+    case GameState::IN_PROGRESS:
+      return "In progress";
+      break;
+    case GameState::CHECK:
+      return "Check";
+      break;
+    case GameState::CHECKMATE:
+      return "Checkmate";
+      break;
+    case GameState::STALEMATE:
+      return "Stalemate";
+      break;
+    case GameState::FIFTY_MOVE_RULE:
+      return "Fifty move rule";
+      break;
+    case GameState::INSUFFICIENT_MATERIAL:
+      return "Insufficient material";
+      break;
+    default:
+      return "In progress";
+      break;
+    }
   }
 
   int Board::getSquare(std::string square)

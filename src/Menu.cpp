@@ -33,6 +33,9 @@ namespace Menu
   void print_board(const Board::Board &board)
   {
     std::cout << (board.isWhiteTurn ? "White" : "Black") << " turn\n\n";
+    std::cout << "GAME STATE: "
+              << board.getStringOfGameState() << std::endl;
+
     std::cout << std::endl
               << "    a  b  c  d  e  f  g  h " << std::endl;
     std::cout << "  ---------------------------" << std::endl;

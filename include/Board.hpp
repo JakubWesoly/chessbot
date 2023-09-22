@@ -135,6 +135,7 @@ namespace Board
 
     bool checkIfCrossesBorder(int square1, int square2);
     bool checkIfFitsInBoard(int square);
+    bool doesMoveCauseCheck(const Move::Move &move);
 
     int getSquare(std::string square);
     int isSquareControled(int square);
@@ -157,6 +158,7 @@ namespace Board
 
     GameState gameState = GameState::IN_PROGRESS;
     std::pair<std::vector<int>, std::vector<int>> pieceSets;
+    std::string getStringOfGameState() const;
 
     int possibleMoves = -1;
     int fiftyMoveRuleCounter = 0;
