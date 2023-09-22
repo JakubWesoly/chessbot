@@ -82,6 +82,8 @@ namespace Board
     moves.insert(moves.end(), queenMoves.begin(), queenMoves.end());
     moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
 
+    possibleMoves = moves.size();
+
     return moves;
   }
 
@@ -1504,7 +1506,6 @@ namespace Board
   {
     board[move.from] = Board::NONE;
 
-    std::cout << "MAKING MOVE" << std::endl;
     if (isWhiteTurn)
     {
       if (isSquareControled(currentWhiteKingPosition) != -1)
@@ -1522,7 +1523,7 @@ namespace Board
       }
     }
 
-    board[move.from] = move.pieceType | (isWhiteTurn ? Board::COLOR : 0);
+    board[move.from] = move.pieceType | (isWhiteTurn ? 0 : Board::COLOR);
 
     return false;
   }
@@ -1555,7 +1556,8 @@ namespace Board
 
   bool Board::isCheckmate()
   {
-    return possibleMoves == 0 && isCheck();
+    // TODO: some optimization needed
+    return getAllValidMoves().size() == 0 && isCheck();
   }
 
   bool Board::isStalemate()
