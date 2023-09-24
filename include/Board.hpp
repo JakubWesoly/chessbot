@@ -36,6 +36,8 @@ namespace Board
      */
     bool makeMove(const Move::Move &move);
 
+    void undoMove();
+
     /**
      * @brief Gets the all possible moves that can be made in the current state of the game
      *
@@ -135,12 +137,15 @@ namespace Board
     std::vector<std::pair<int, bool>> getDiagonalMoves(int square);
     std::vector<std::pair<int, bool>> getVerticalAndHorizontalMoves(int square);
 
-    bool checkIfCrossesBorder(int square1, int square2);
-    bool checkIfFitsInBoard(int square);
+    static bool checkIfCrossesBorder(int square1, int square2);
+    static bool checkIfFitsInBoard(int square);
     bool doesMoveCauseCheck(const Move::Move &move);
+    bool isOnEnemySide(int square, bool isWhite);
 
     int getSquare(std::string square);
     int isSquareControled(int square);
+
+    int getPiece(int square);
 
     void setToDefault();
 
@@ -169,23 +174,23 @@ namespace Board
 
     std::vector<Move::Move> moveHistory;
 
-    static const int NONE = 0;
-    static const int COLOR = 1;
-    static const int PAWN = 2;
-    static const int KNIGHT = 4;
-    static const int BISHOP = 8;
-    static const int ROOK = 16;
-    static const int QUEEN = 32;
-    static const int KING = 64;
+    static constexpr int NONE = 0;
+    static constexpr int COLOR = 1;
+    static constexpr int PAWN = 2;
+    static constexpr int KNIGHT = 4;
+    static constexpr int BISHOP = 8;
+    static constexpr int ROOK = 16;
+    static constexpr int QUEEN = 32;
+    static constexpr int KING = 64;
 
-    static const int UP = 8;
-    static const int DOWN = -8;
-    static const int LEFT = -1;
-    static const int RIGHT = 1;
-    static const int UP_LEFT = 7;
-    static const int UP_RIGHT = 9;
-    static const int DOWN_LEFT = -9;
-    static const int DOWN_RIGHT = -7;
+    static constexpr int UP = 8;
+    static constexpr int DOWN = -8;
+    static constexpr int LEFT = -1;
+    static constexpr int RIGHT = 1;
+    static constexpr int UP_LEFT = 7;
+    static constexpr int UP_RIGHT = 9;
+    static constexpr int DOWN_LEFT = -9;
+    static constexpr int DOWN_RIGHT = -7;
   };
 } // namespace Board
 

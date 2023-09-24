@@ -30,15 +30,15 @@ namespace Program
 
       std::cout << "Your move is: " << (isValidMove ? "valid" : "invalid") << std::endl;
 
+      Move::Move botsMove = bot.findBestMove();
+
+      std::cout
+          << "Evaluation: " << bot.evaluatePosition() << std::endl
+          << "Bot's move: " << botsMove.toString() << std::endl;
+
+      bot.makeMove(botsMove);
+
       Menu::print_board(bot.realBoard);
-
-      // Move::Move botsMove = bot.findBestMove();
-
-      // std::cout
-      //     << "Evaluation: " << bot.evaluatePosition() << std::endl
-      //     << "Bot's move: " << botsMove.toString() << std::endl;
-
-      // bot.makeMove(botsMove);
     }
   }
 } // namespace Program

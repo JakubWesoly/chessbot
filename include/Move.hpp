@@ -45,6 +45,7 @@ namespace Move
 
     bool isVaild = true;
     int promotionTo = -1;
+    int caputredPiece = -1;
 
     // Move(PieceType pieceType, char from, char to[]);
     Move(const std::string &move);
