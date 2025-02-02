@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <array>
 
 namespace Board
 {
@@ -150,7 +151,6 @@ namespace Board
     void setToDefault();
 
     // board[0] = a1
-
     unsigned long long board[64] = {0};
 
     bool hasWhiteKingMoved = false;

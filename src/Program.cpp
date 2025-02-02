@@ -15,30 +15,38 @@ namespace Program
     Menu::init();
 
     Menu::print_board(bot.realBoard);
+
+    bool isPlayerBlocked = true;
+
     while (true)
     {
+        std::string moveStr = Menu::get_move();
 
-      std::string moveStr = Menu::get_move();
+        std::cout << moveStr << std::endl;
 
-      std::cout << moveStr << std::endl;
+        Move::Move move(moveStr);
 
-      Move::Move move(moveStr);
+        std::cout << move.to << std::endl;
 
-      std::cout << move.to << std::endl;
+        bool isValidMove = bot.makeRealMove(move);
 
-      bool isValidMove = bot.makeMove(move);
+        std::cout << "Your move is: " << (isValidMove ? "valid" : "invalid") << std::endl;
+        
 
-      std::cout << "Your move is: " << (isValidMove ? "valid" : "invalid") << std::endl;
+      if(isValidMove) {
+        Move::Move botsMove = bot.findBestMove();
 
-      Move::Move botsMove = bot.findBestMove();
+        std::cout
+            << "Evaluation: " << bot.evaluatePosition() << std::endl
+            << "Bot's move: " << botsMove.toString() << std::endl;
 
-      std::cout
-          << "Evaluation: " << bot.evaluatePosition() << std::endl
-          << "Bot's move: " << botsMove.toString() << std::endl;
+        bot.makeRealMove(botsMove);
+      }
 
-      bot.makeMove(botsMove);
 
       Menu::print_board(bot.realBoard);
+
+      isPlayerBlocked = false;
     }
   }
 } // namespace Program

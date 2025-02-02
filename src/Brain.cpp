@@ -1,5 +1,6 @@
 #include "Brain.hpp"
 #include <iostream>
+#include "Menu.hpp"
 
 namespace Brain
 {
@@ -7,7 +8,8 @@ namespace Brain
   {
     this->neurons = readNeurons();
   }
-  bool Brain::makeMove(Move::Move move)
+
+  bool Brain::makeRealMove(Move::Move move)
   {
     // auto moves = realBoard.getAllValidMoves();
 
@@ -17,8 +19,28 @@ namespace Brain
     //   std::cout << move.toString() << " " << move.to << std::endl;
     // }
 
-    this->testBoard.makeMove(move);
-    return this->realBoard.makeMove(move);
+    // this->testBoard.makeMove(move);
+    bool success = this->realBoard.makeMove(move);
+
+    if(success) {
+      this->testBoard = this->realBoard;
+    }
+
+    return success;
+  }
+
+  bool Brain::makeTestMove(Move::Move move)
+  {
+    // auto moves = realBoard.getAllValidMoves();
+
+    // std::cout << "size: " << moves.size() << std::endl;
+    // for (auto &move : moves)
+    // {
+    //   std::cout << move.toString() << " " << move.to << std::endl;
+    // }
+
+    // this->testBoard.makeMove(move);
+    return this->testBoard.makeMove(move);
   }
 
   double Brain::evaluatePosition()
@@ -35,16 +57,42 @@ namespace Brain
 
   Move::Move Brain::findBestMove()
   {
+    // std::cout << "WG BOTA TURA: " << (this->testBoard.isWhiteTurn ? "BIALEGO" : "CZARNEGO") << "\n";
     auto moves = this->testBoard.getAllValidMoves();
+
+    std::cout << "size: " << moves.size() << std::endl;
+    for (auto &move : moves)
+    {
+      std::cout << move.toString() << " " << move.to << std::endl;
+    }
 
     double bestScore = -1000000;
     Move::Move bestMove(true);
 
     for (auto &move : moves)
     {
-      this->testBoard.makeMove(move);
+      std::cout << "WG BOTA TURA: " << (this->testBoard.isWhiteTurn ? "BIALEGO" : "CZARNEGO") << "\n";
+
+      // auto xd = this->testBoard.getAllValidMoves();
+
+      std::cout <<"KRUWAAA: " << move.toString() << "\n";
+
+    //   for (auto &move : xd)
+    // {
+    //   std::cout << move.toString() << " " << move.to << std::endl;
+    // }
+
+      auto v = this->testBoard.makeMove(move);
+      // std::cout << "Valid? " << v << "\n";
       double score = evaluatePosition();
       this->testBoard.undoMove();
+      
+      
+      // std::cout <<"BOARD PO TESCIE " << "\n";
+      // Menu::print_board(this->testBoard);
+      
+      // std::cout << "PO WSZYSTKIM WG BOTA TURA: " << (this->testBoard.isWhiteTurn ? "BIALEGO" : "CZARNEGO") << "\n\n\n\n";
+    // std::cout << "TESTUJE RUCH: " << move.toString() << std::endl;
 
       if (score > bestScore)
       {
@@ -344,13 +392,14 @@ namespace Brain
 
   std::vector<EvaluationNode> Brain::readNeurons()
   {
-    std::ifstream source(neuronsSource, std::ios::in);
+    std::ifstream source(neuronsSource);
 
     std::vector<EvaluationNode> neurons;
 
     std::string line;
+    
 
-    while (std::getline(source, line))
+    while (std::getline(source, line)) 
     {
       std::string type = line.substr(0, line.find("="));
       std::string value = line.substr(line.find("=") + 1, line.length());

@@ -21,6 +21,21 @@ namespace Brain
   {
     EvaluationTypes type;
     double value;
+
+    std::string printName() {
+      switch(type) {
+        case EvaluationTypes::MATERIAL:
+          return "MATERIAL";
+        case EvaluationTypes::SPACE:
+          return "SPACE";
+        case EvaluationTypes::KING_SAFETY:
+          return "KING_SAFETY";
+        case EvaluationTypes::PIECE_ACTIVITY:
+          return "ACTIVITY";
+        default:
+          return "mysterious shi";
+      }
+    }
   };
 
   class Brain
@@ -31,7 +46,8 @@ namespace Brain
 
     double evaluatePosition();
     Move::Move findBestMove();
-    bool makeMove(Move::Move move);
+    bool makeRealMove(Move::Move move);
+    bool makeTestMove(Move::Move move);
 
     Board::Board realBoard;
     Board::Board testBoard;

@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iostream>
 
 namespace Board
 {
@@ -41,8 +42,12 @@ namespace Board
 
     Move::Move checkedMove = isValidMove(move);
 
-    if (!checkedMove.isVaild)
+    if (!checkedMove.isVaild) {
+      std::cout << "iswhiteturn: " << isWhiteTurn << "\n";
+      std::cout << "NIEPOPRAWNY RYCH????" << "\n";
       return false;
+
+    }
     bool isValidMove;
 
     if (std::find(checkedMove.moveTypes.begin(), checkedMove.moveTypes.end(), Move::MoveTypes::SHORT_CASTLE) != checkedMove.moveTypes.end())
@@ -1784,10 +1789,12 @@ namespace Board
   {
     if (moveHistory.size() == 0)
     {
+    std::cout << "PUSTE" << "\n";
       return;
     }
 
     Move::Move lastMove = moveHistory.back();
+    std::cout << "COFAM RUCH: " << lastMove.toString() << "\n";
 
     if (lastMove.pieceType == Move::PieceType::KING)
     {
@@ -1830,17 +1837,47 @@ namespace Board
 
     if (lastMove.pieceType == Move::PieceType::PAWN)
     {
-      if (std::find(lastMove.moveTypes.begin(), lastMove.moveTypes.end(), Move::MoveTypes::EN_PASSANT) != lastMove.moveTypes.end())
-      {
-        if (isWhiteTurn)
-        {
-          board[lastMove.to + Board::DOWN] = Board::PAWN | Board::COLOR;
-        }
-        else
-        {
-          board[lastMove.to + Board::UP] = Board::PAWN;
-        }
-      }
+      Move::Move a(false);
+      a.to = lastMove.from;
+      
+      Move::Move b(false);
+      b.to = lastMove.to;
+
+      // std::cout << "ANALIZA PIONA / Z: " << a.toString() << " / DO : " << b.toString()  << std::endl;
+      // CHECK FOR INITIAL DOUBLE JUMP
+      // if(
+      //   isWhiteTurn && lastMove.from == lastMove.to + 2 * Board::DOWN ||
+      //   !isWhiteTurn && lastMove.from == lastMove.to + 2 * Board::UP ||
+      //   ) {
+
+      //   }
+      // if (std::find(lastMove.moveTypes.begin(), lastMove.moveTypes.end(), Move::MoveTypes::EN_PASSANT) != lastMove.moveTypes.end())
+      // {
+      //   std::cout << "PIONEK RUSZYL SIE Z: " << lastMove.from << " DO :"
+      //   // CHECK IF PREVIOUS MOVE WAS A DOUBLE MOVE
+      //   if(lastMove.from == lastMove.to - 16 || lastMove.from == lastMove.to + 16) {
+      //     if (isWhiteTurn)
+      //     {
+      //       board[lastMove.to + Board::DOWN * 2] = Board::PAWN | Board::COLOR;
+      //     }
+      //     else
+      //     {
+      //       board[lastMove.to + Board::UP * 2] = Board::PAWN;
+      //     }
+      //   }
+      //   else {
+      //     if (isWhiteTurn)
+      //     {
+      //       board[lastMove.to + Board::DOWN] = Board::PAWN | Board::COLOR;
+      //     }
+      //     else
+      //     {
+      //       board[lastMove.to + Board::UP] = Board::PAWN;
+      //     }
+      //   }
+
+      //   // TODO: ADD EN PASSANT
+      // }
     }
 
     if (std::find(lastMove.moveTypes.begin(), lastMove.moveTypes.end(), Move::MoveTypes::PROMOTION) != lastMove.moveTypes.end())
@@ -1852,8 +1889,14 @@ namespace Board
       board[lastMove.from] = lastMove.pieceType | (isWhiteTurn ? 0 : Board::COLOR);
     }
 
-    board[lastMove.to] = lastMove.caputredPiece | (!isWhiteTurn);
 
+    if(lastMove.caputredPiece != -1) {
+      board[lastMove.to] = lastMove.caputredPiece | (!isWhiteTurn);
+    } else {
+      board[lastMove.to] = Board::NONE;
+    }
+    // std::cout << "Dochodzinmy do konca : " << lastMove.caputredPiece << "\n";
+    board[lastMove.from] = lastMove.pieceType | isWhiteTurn;
     isWhiteTurn = !isWhiteTurn;
 
     moveHistory.pop_back();
