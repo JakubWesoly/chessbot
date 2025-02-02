@@ -1,5 +1,6 @@
 cd ..
-cmake -B ./build
+cmake -B ../build
+
 cd build
 make
 Chessbot.exe
