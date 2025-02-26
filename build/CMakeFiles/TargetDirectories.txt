@@ -1,3 +1,0 @@
-C:/Users/Kuba/dev/chessbot/build/CMakeFiles/Chessbot.dir
-C:/Users/Kuba/dev/chessbot/build/CMakeFiles/edit_cache.dir
-C:/Users/Kuba/dev/chessbot/build/CMakeFiles/rebuild_cache.dir
