@@ -9,6 +9,12 @@ namespace Brain
     this->neurons = readNeurons();
   }
 
+  Brain::Brain(const std::string& FEN) {
+    this->neurons = readNeurons();
+    this->realBoard.setFromFEN(FEN);
+    this->testBoard.setFromFEN(FEN);
+  }
+
   bool Brain::makeRealMove(Move::Move move)
   {
     // auto moves = realBoard.getAllValidMoves();

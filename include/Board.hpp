@@ -149,6 +149,7 @@ namespace Board
     int getPiece(int square);
 
     void setToDefault();
+    void setFromFEN(const std::string& FEN);
 
     // board[0] = a1
     unsigned long long board[64] = {0};

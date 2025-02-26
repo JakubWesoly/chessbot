@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <iostream>
+#include <unordered_map>
 
 namespace Board
 {
@@ -33,6 +34,51 @@ namespace Board
 
     currentWhiteKingPosition = 4;
     currentBlackKingPosition = 60;
+  }
+
+  void Board::setFromFEN(const std::string& FEN) {
+    // https://en.wikipedia.org/wiki/Forsyth-Edwards_Notation
+    static const std::unordered_map<char, int> translationTable {
+      {'p', Board::PAWN | Board::COLOR},
+      {'P', Board::PAWN},
+      {'n', Board::KNIGHT | Board::COLOR},
+      {'N', Board::KNIGHT},
+      {'b', Board::BISHOP | Board::COLOR},
+      {'B', Board::BISHOP},
+      {'r', Board::ROOK | Board::COLOR},
+      {'R', Board::ROOK},
+      {'q', Board::QUEEN | Board::COLOR},
+      {'Q', Board::QUEEN},
+      {'K', Board::KING | Board::COLOR},
+      {'k', Board::KING},
+    };
+
+    // Reset board
+    for(int i = 0; i < 64; i++) {
+      board[i] = Board::NONE;
+    }
+    
+    // Start from a8 (top-left square)
+    int boardPointer = 56;
+    size_t i = 0;
+    while(i < FEN.length() && FEN[i] != ' ') {
+      char character = FEN[i++];
+      if(character == '/') {
+        boardPointer -= 16;
+      }
+      else if(character >= '1' && character <= '8') {
+        boardPointer += character - '0';
+      } else {
+        // Check if provided FEN has invalid characters or if boardPointer is out of bounds
+        if(translationTable.find(character) == translationTable.end()
+           || !(boardPointer < 64 && boardPointer >= 0)) {
+          std::cerr << "Invalid FEN notation\n";
+          exit(1);
+        }
+        board[boardPointer] = translationTable.at(character);
+        boardPointer++;
+      }
+    }
   }
 
   bool Board::makeMove(const Move::Move &move)

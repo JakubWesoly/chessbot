@@ -42,6 +42,7 @@ namespace Brain
   {
   public:
     Brain();
+    Brain(const std::string& FEN);
     ~Brain() = default;
 
     double evaluatePosition();
