@@ -34,8 +34,13 @@ target_compile_features(Chessbot PUBLIC cxx_std_17)
 target_compile_options(Chessbot PRIVATE -Wall -Wextra -pedantic)
 target_include_directories(Chessbot PUBLIC include)
 
+set(TESTS
+    # tests/BoardTests.cpp
+    tests/MoveTests.cpp
+)
+
 # Test executable
-add_executable(ChessbotTests tests/BoardTests.cpp ${SOURCES})
+add_executable(ChessbotTests ${TESTS} ${SOURCES})
 target_link_libraries(ChessbotTests PRIVATE GTest::gtest_main)
 target_compile_features(ChessbotTests PUBLIC cxx_std_17)
 target_compile_options(ChessbotTests PRIVATE -Wall -Wextra -pedantic)

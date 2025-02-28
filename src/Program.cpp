@@ -10,7 +10,7 @@ namespace Program
 {
   void run()
   {
-    Brain::Brain bot;
+    Brain::Brain bot("4k3/8/8/8/8/6b1/5Q2/4K3");
 
     Menu::init();
 
@@ -24,7 +24,7 @@ namespace Program
 
         Move::Move move(moveStr);
 
-        std::cout << move.to << "\n";
+        // std::cout << move.to << "\n";
 
         bool isValidMove = bot.makeRealMove(move);
 

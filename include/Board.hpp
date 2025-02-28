@@ -176,7 +176,7 @@ namespace Board
     std::vector<Move::Move> moveHistory;
 
     static constexpr int NONE = 0;
-    static constexpr int COLOR = 1;
+    static constexpr int BLACK = 1;
     static constexpr int PAWN = 2;
     static constexpr int KNIGHT = 4;
     static constexpr int BISHOP = 8;

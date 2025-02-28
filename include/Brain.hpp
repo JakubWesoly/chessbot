@@ -67,7 +67,7 @@ namespace Brain
     constexpr static double optimalKingSafety = 12.0;
 
     std::vector<EvaluationNode> neurons;
-    std::string neuronsSource = "neurons.txt";
+    constexpr static char* neuronsSource = "neurons.txt";
   };
 } // namespace Brain
 

@@ -19,7 +19,7 @@ namespace Board
     for (int i = 0; i < 8; i++)
     {
       board[i] = pieceSet[i];
-      board[i + 56] = Board::COLOR | pieceSet[i];
+      board[i + 56] = Board::BLACK | pieceSet[i];
       pieceSets.first.push_back(pieceSet[i]);
       pieceSets.second.push_back(pieceSet[i]);
     }
@@ -27,7 +27,7 @@ namespace Board
     for (int i = 8; i < 16; i++)
     {
       board[i] = Board::PAWN;
-      board[i + 40] = Board::COLOR | Board::PAWN;
+      board[i + 40] = Board::BLACK | Board::PAWN;
       pieceSets.first.push_back(pieceSet[i]);
       pieceSets.second.push_back(pieceSet[i]);
     }
@@ -39,17 +39,17 @@ namespace Board
   void Board::setFromFEN(const std::string& FEN) {
     // https://en.wikipedia.org/wiki/Forsyth-Edwards_Notation
     static const std::unordered_map<char, int> translationTable {
-      {'p', Board::PAWN | Board::COLOR},
+      {'p', Board::PAWN | Board::BLACK},
       {'P', Board::PAWN},
-      {'n', Board::KNIGHT | Board::COLOR},
+      {'n', Board::KNIGHT | Board::BLACK},
       {'N', Board::KNIGHT},
-      {'b', Board::BISHOP | Board::COLOR},
+      {'b', Board::BISHOP | Board::BLACK},
       {'B', Board::BISHOP},
-      {'r', Board::ROOK | Board::COLOR},
+      {'r', Board::ROOK | Board::BLACK},
       {'R', Board::ROOK},
-      {'q', Board::QUEEN | Board::COLOR},
+      {'q', Board::QUEEN | Board::BLACK},
       {'Q', Board::QUEEN},
-      {'k', Board::KING | Board::COLOR},
+      {'k', Board::KING | Board::BLACK},
       {'K', Board::KING},
     };
 
@@ -84,14 +84,14 @@ namespace Board
 
   bool Board::makeMove(const Move::Move &move)
   {
-    if (gameState == GameState::CHECKMATE || gameState == GameState::STALEMATE || gameState == GameState::RESIGNATION)
+    if (gameState == GameState::CHECKMATE || gameState == GameState::STALEMATE || gameState == GameState::RESIGNATION || gameState == GameState::THREEFOLD_REPETITION || gameState == GameState::FIFTY_MOVE_RULE || gameState == GameState::INSUFFICIENT_MATERIAL)
       return false;
 
     Move::Move checkedMove = isValidMove(move);
 
     if (!checkedMove.isValid) {
-      std::cout << "iswhiteturn: " << isWhiteTurn << "\n";
-      std::cout << "NIEPOPRAWNY RYCH????" << "\n";
+      // std::cout << "iswhiteturn: " << isWhiteTurn << "\n";
+      // std::cout << "NIEPOPRAWNY RYCH????" << "\n";
       return false;
 
     }
@@ -192,7 +192,7 @@ namespace Board
       }
       else
       {
-        if (board[i] == (Board::PAWN | Board::COLOR))
+        if (board[i] == (Board::PAWN | Board::BLACK))
         {
           Move::Move movesList[] = {
               Move::Move(i, i - 8, Move::PieceType::PAWN, {}),
@@ -264,7 +264,7 @@ namespace Board
       }
       else
       {
-        if (board[i] == (Board::KNIGHT | Board::COLOR))
+        if (board[i] == (Board::KNIGHT | Board::BLACK))
         {
           Move::Move movesList[] = {
               Move::Move(i, i + 17, Move::PieceType::KNIGHT, {}),
@@ -407,7 +407,7 @@ namespace Board
         }
         else
         {
-          if ((board[currentWhiteKingPosition + possibleMoves[i]] & Board::COLOR))
+          if ((board[currentWhiteKingPosition + possibleMoves[i]] & Board::BLACK))
           {
             moves.push_back(Move::Move(currentWhiteKingPosition, currentWhiteKingPosition + possibleMoves[i], Move::PieceType::KING, {Move::MoveTypes::CAPTURE}));
           }
@@ -421,7 +421,7 @@ namespace Board
         }
         else
         {
-          if ((board[currentBlackKingPosition + possibleMoves[i]] & !Board::COLOR))
+          if ((board[currentBlackKingPosition + possibleMoves[i]] & !Board::BLACK))
           {
             moves.push_back(Move::Move(currentBlackKingPosition, currentBlackKingPosition + possibleMoves[i], Move::PieceType::KING, {Move::MoveTypes::CAPTURE}));
           }
@@ -448,7 +448,7 @@ namespace Board
 
   Move::Move Board::isValidMove(const Move::Move &move)
   {
-    std::vector<Move::Move> checkedMoves = {};
+    std::vector<Move::Move> checkedMoves;
     switch (move.pieceType)
     {
     case Move::PieceType::PAWN:
@@ -511,7 +511,7 @@ namespace Board
       if (isWhiteTurn)
       {
         // Check if the target square is a white piece or empty
-        if (!(board[targetSquare] & Board::COLOR))
+        if (!(board[targetSquare] & Board::BLACK))
           return {};
 
         // Check if the squares from the capture is possible are occupied with white pawns
@@ -530,18 +530,18 @@ namespace Board
       else
       {
         // Check if the target square is a black piece or empty
-        if ((board[targetSquare] & Board::COLOR))
+        if ((board[targetSquare] & Board::BLACK))
           return {};
 
         // Check if the squares from the capture is possible are occupied with black pawns
-        if (((targetSquare <= 56 && board[targetSquare + Board::UP_LEFT] != (Board::COLOR | Board::PAWN)) && (targetSquare <= 54 && board[targetSquare + Board::UP_RIGHT] != (Board::COLOR | Board::PAWN))))
+        if (((targetSquare <= 56 && board[targetSquare + Board::UP_LEFT] != (Board::BLACK | Board::PAWN)) && (targetSquare <= 54 && board[targetSquare + Board::UP_RIGHT] != (Board::BLACK | Board::PAWN))))
           return {};
 
-        if (targetSquare <= 56 && board[targetSquare + Board::UP_LEFT] == (Board::COLOR | Board::PAWN) && !isOnLeftBorder(targetSquare))
+        if (targetSquare <= 56 && board[targetSquare + Board::UP_LEFT] == (Board::BLACK | Board::PAWN) && !isOnLeftBorder(targetSquare))
         {
           return {Move::Move(targetSquare + Board::UP_LEFT, targetSquare, Move::PieceType::PAWN, {Move::MoveTypes::CAPTURE})};
         }
-        else if (targetSquare <= 54 && board[targetSquare + Board::UP_RIGHT] == (Board::COLOR | Board::PAWN) && !isOnRightBorder(targetSquare))
+        else if (targetSquare <= 54 && board[targetSquare + Board::UP_RIGHT] == (Board::BLACK | Board::PAWN) && !isOnRightBorder(targetSquare))
         {
           return {Move::Move(targetSquare + Board::UP_RIGHT, targetSquare, Move::PieceType::PAWN, {Move::MoveTypes::CAPTURE})};
         }
@@ -625,14 +625,14 @@ namespace Board
       {
         if (isWhiteTurn)
         {
-          if (!(board[move.to] & Board::COLOR))
+          if (!(board[move.to] & Board::BLACK))
             continue;
           else
             appendedMoveTypes.push_back(Move::MoveTypes::CAPTURE);
         }
         else
         {
-          if ((board[move.to] & Board::COLOR))
+          if ((board[move.to] & Board::BLACK))
             continue;
           else
             appendedMoveTypes.push_back(Move::MoveTypes::CAPTURE);
@@ -655,7 +655,7 @@ namespace Board
       }
       else
       {
-        if (board[from] != (Board::KNIGHT | Board::COLOR))
+        if (board[from] != (Board::KNIGHT | Board::BLACK))
           continue;
       }
       result.push_back(Move::Move(from, move.to, Move::PieceType::KNIGHT, appendedMoveTypes));
@@ -663,6 +663,7 @@ namespace Board
     return result;
   }
 
+  // WORKS
   std::vector<Move::Move> Board::getValidBishopMoves(const Move::Move &move)
   {
     std::vector<Move::Move> result = {};
@@ -737,9 +738,9 @@ namespace Board
         if (board[move.to] == Board::NONE)
           continue;
 
-        if (isWhiteTurn && !(board[move.to] & Board::COLOR))
+        if (isWhiteTurn && !(board[move.to] & Board::BLACK))
           continue;
-        else if (!isWhiteTurn && (board[move.to] & Board::COLOR))
+        else if (!isWhiteTurn && (board[move.to] & Board::BLACK))
           continue;
 
         result.push_back(Move::Move(from, move.to, Move::PieceType::ROOK, {Move::MoveTypes::CAPTURE}));
@@ -758,7 +759,7 @@ namespace Board
       }
       else
       {
-        if (board[from] != (Board::ROOK | Board::COLOR))
+        if (board[from] != (Board::ROOK | Board::BLACK))
           continue;
       }
 
@@ -841,7 +842,7 @@ namespace Board
           continue;
         if (isWhiteTurn)
         {
-          if (!(board[move.to] & Board::COLOR))
+          if (!(board[move.to] & Board::BLACK))
             continue;
           else
           {
@@ -851,7 +852,7 @@ namespace Board
         }
         else
         {
-          if ((!board[move.to] && board[move.to] & !Board::COLOR))
+          if ((!board[move.to] && board[move.to] & !Board::BLACK))
             continue;
           else
           {
@@ -873,7 +874,7 @@ namespace Board
       }
       else
       {
-        if (board[from] != (Board::QUEEN | Board::COLOR))
+        if (board[from] != (Board::QUEEN | Board::BLACK))
           continue;
       }
       result.push_back(Move::Move(from, move.to, Move::PieceType::QUEEN, {}));
@@ -986,7 +987,7 @@ namespace Board
       {
         if (isWhiteTurn)
         {
-          if (!(board[move.to] & Board::COLOR))
+          if (!(board[move.to] & Board::BLACK))
             continue;
           else
           {
@@ -996,7 +997,7 @@ namespace Board
         }
         else
         {
-          if ((!board[move.to] && board[move.to] & !Board::COLOR))
+          if ((!board[move.to] && board[move.to] & !Board::BLACK))
             continue;
           else
           {
@@ -1018,7 +1019,7 @@ namespace Board
       }
       else
       {
-        if (board[from] != (Board::KING | Board::COLOR))
+        if (board[from] != (Board::KING | Board::BLACK))
           continue;
       }
 
@@ -1082,11 +1083,11 @@ namespace Board
             {
               Move::Move result = Move::Move(true);
 
-              if (targetSquare <= 56 && board[targetSquare + Board::UP_LEFT] == (Board::COLOR | Board::PAWN) && !isOnLeftBorder(targetSquare))
+              if (targetSquare <= 56 && board[targetSquare + Board::UP_LEFT] == (Board::BLACK | Board::PAWN) && !isOnLeftBorder(targetSquare))
               {
                 result = Move::Move(targetSquare + Board::UP_LEFT, targetSquare, Move::PieceType::PAWN, {Move::MoveTypes::CAPTURE, Move::MoveTypes::PROMOTION});
               }
-              else if (targetSquare <= 54 && board[targetSquare + Board::UP_RIGHT] == (Board::COLOR | Board::PAWN) && !isOnRightBorder(targetSquare))
+              else if (targetSquare <= 54 && board[targetSquare + Board::UP_RIGHT] == (Board::BLACK | Board::PAWN) && !isOnRightBorder(targetSquare))
               {
                 result = Move::Move(targetSquare + Board::UP_RIGHT, targetSquare, Move::PieceType::PAWN, {Move::MoveTypes::CAPTURE, Move::MoveTypes::PROMOTION});
               }
@@ -1191,11 +1192,11 @@ namespace Board
     }
     else
     {
-      if (lastMove.pieceType == Move::PieceType::PAWN && lastMove.to == targetSquare + Board::UP && lastMove.from == targetSquare + Board::DOWN && board[lastMove.to + Board::LEFT] == (Board::PAWN | Board::COLOR) && !isOnLeftBorder(targetSquare))
+      if (lastMove.pieceType == Move::PieceType::PAWN && lastMove.to == targetSquare + Board::UP && lastMove.from == targetSquare + Board::DOWN && board[lastMove.to + Board::LEFT] == (Board::PAWN | Board::BLACK) && !isOnLeftBorder(targetSquare))
       {
         return {true, Move::Move(targetSquare + Board::UP_LEFT, targetSquare, Move::PieceType::PAWN, {Move::MoveTypes::CAPTURE, Move::MoveTypes::EN_PASSANT})};
       }
-      else if (lastMove.pieceType == Move::PieceType::PAWN && lastMove.to == targetSquare + Board::UP && lastMove.from == targetSquare + Board::DOWN && board[lastMove.to + Board::RIGHT] == (Board::PAWN | Board::COLOR) && !isOnRightBorder(targetSquare))
+      else if (lastMove.pieceType == Move::PieceType::PAWN && lastMove.to == targetSquare + Board::UP && lastMove.from == targetSquare + Board::DOWN && board[lastMove.to + Board::RIGHT] == (Board::PAWN | Board::BLACK) && !isOnRightBorder(targetSquare))
       {
         return {true, Move::Move(targetSquare + Board::UP_RIGHT, targetSquare, Move::PieceType::PAWN, {Move::MoveTypes::CAPTURE, Move::MoveTypes::EN_PASSANT})};
       }
@@ -1299,9 +1300,9 @@ namespace Board
           break;
         if (board[i] != Board::NONE)
         {
-          if ((isWhiteTurn && (board[i] & !Board::COLOR)) || (!isWhiteTurn && (board[i] & Board::COLOR)))
+          if ((isWhiteTurn && (board[i] & !Board::BLACK)) || (!isWhiteTurn && (board[i] & Board::BLACK)))
             break;
-          else if ((isWhiteTurn && (board[i] & Board::COLOR)) || (!isWhiteTurn && (board[i] & !Board::COLOR)))
+          else if ((isWhiteTurn && (board[i] & Board::BLACK)) || (!isWhiteTurn && (board[i] & !Board::BLACK)))
           {
             results.push_back({i, true});
             break;
@@ -1336,9 +1337,9 @@ namespace Board
           break;
         if (board[i] != Board::NONE)
         {
-          if ((isWhiteTurn && (board[i] & !Board::COLOR)) || (!isWhiteTurn && (board[i] & Board::COLOR)))
+          if ((isWhiteTurn && (board[i] & !Board::BLACK)) || (!isWhiteTurn && (board[i] & Board::BLACK)))
             break;
-          else if ((isWhiteTurn && (board[i] & Board::COLOR)) || (!isWhiteTurn && (board[i] & !Board::COLOR)))
+          else if ((isWhiteTurn && (board[i] & Board::BLACK)) || (!isWhiteTurn && (board[i] & !Board::BLACK)))
           {
             results.push_back({i, true});
             break;
@@ -1409,11 +1410,11 @@ namespace Board
   {
     if (isWhiteTurn)
     {
-      if (square >= 0 && square < 64 && board[square + Board::UP_LEFT] == (Board::PAWN | (Board::COLOR)) && !isOnLeftBorder(square))
+      if (square >= 0 && square < 64 && board[square + Board::UP_LEFT] == (Board::PAWN | (Board::BLACK)) && !isOnLeftBorder(square))
       {
         return square + Board::UP_LEFT;
       }
-      else if (square >= 0 && square < 64 && board[square + Board::UP_RIGHT] == (Board::PAWN | (Board::COLOR)) && !isOnRightBorder(square))
+      else if (square >= 0 && square < 64 && board[square + Board::UP_RIGHT] == (Board::PAWN | (Board::BLACK)) && !isOnRightBorder(square))
       {
         return square + Board::UP_RIGHT;
       }
@@ -1520,8 +1521,8 @@ namespace Board
     else
     {
       board[60] = Board::NONE;
-      board[61] = Board::COLOR | Board::ROOK;
-      board[62] = Board::COLOR | Board::KING;
+      board[61] = Board::BLACK | Board::ROOK;
+      board[62] = Board::BLACK | Board::KING;
       board[63] = Board::NONE;
       hasBlackKingMoved = true;
       hasBlackRookHMoved = true;
@@ -1583,8 +1584,8 @@ namespace Board
     else
     {
       board[60] = Board::NONE;
-      board[59] = Board::COLOR | Board::ROOK;
-      board[58] = Board::COLOR | Board::KING;
+      board[59] = Board::BLACK | Board::ROOK;
+      board[58] = Board::BLACK | Board::KING;
       board[57] = Board::NONE;
       board[56] = Board::NONE;
       hasBlackKingMoved = true;
@@ -1656,32 +1657,32 @@ namespace Board
   {
     board[move.from] = Board::NONE;
 
-    if (isWhiteTurn)
-    {
-      if (isSquareControled(currentWhiteKingPosition) != -1)
-      {
-        board[move.from] = move.pieceType;
-        return true;
-      }
-    }
-    else
-    {
-      if (isSquareControled(currentBlackKingPosition) != -1)
-      {
-        board[move.from] = move.pieceType | Board::COLOR;
-        return true;
-      }
-    }
+    auto bufferPiece = getPiece(move.to);
 
-    board[move.from] = move.pieceType | (isWhiteTurn ? 0 : Board::COLOR);
+    board[move.to] = move.pieceType | (!isWhiteTurn);
+
+
+    if (isSquareControled(isWhiteTurn ? currentWhiteKingPosition : currentBlackKingPosition) != -1)
+      {
+        board[move.from] = move.pieceType | (!isWhiteTurn);
+        board[move.to] = bufferPiece;
+        return true;
+      }
+
+    board[move.from] = move.pieceType | (!isWhiteTurn);
+    board[move.to] = bufferPiece;
 
     return false;
   }
 
-  bool Board::checkIfCrossesBorder(int square1, int square2)
-  {
-    return (abs(square1 / 8 - square2 / 8) > 1) || (abs(square1 % 8 - square2 % 8) > 1);
-  }
+bool Board::checkIfCrossesBorder(int square1, int square2)
+{
+    int file1 = square1 % 8, rank1 = square1 / 8;
+    int file2 = square2 % 8, rank2 = square2 / 8;
+
+    // A move crosses a border if the file or rank difference is greater than 1
+    return (abs(rank1 - rank2) > 1) || (abs(file1 - file2) > 1);
+}
 
   bool Board::checkIfFitsInBoard(int square)
   {
@@ -1742,19 +1743,19 @@ namespace Board
     {
       if (board[i] != Board::NONE)
       {
-        if (board[i] == Board::PAWN || board[i] == (Board::PAWN | Board::COLOR))
+        if (board[i] == Board::PAWN || board[i] == (Board::PAWN | Board::BLACK))
         {
           return false;
         }
-        else if (board[i] == Board::ROOK || board[i] == (Board::ROOK | Board::COLOR))
+        else if (board[i] == Board::ROOK || board[i] == (Board::ROOK | Board::BLACK))
         {
           return false;
         }
-        else if (board[i] == Board::QUEEN || board[i] == (Board::QUEEN | Board::COLOR))
+        else if (board[i] == Board::QUEEN || board[i] == (Board::QUEEN | Board::BLACK))
         {
           return false;
         }
-        else if (board[i] == Board::KNIGHT || board[i] == (Board::KNIGHT | Board::COLOR))
+        else if (board[i] == Board::KNIGHT || board[i] == (Board::KNIGHT | Board::BLACK))
         {
           if (whitePieces > 1 || blackPieces > 1)
           {
@@ -1766,7 +1767,7 @@ namespace Board
             blackPieces++;
           }
         }
-        else if (board[i] == Board::BISHOP || board[i] == (Board::BISHOP | Board::COLOR))
+        else if (board[i] == Board::BISHOP || board[i] == (Board::BISHOP | Board::BLACK))
         {
           if (whitePieces > 1 || blackPieces > 1)
           {
@@ -1929,11 +1930,11 @@ namespace Board
 
     if (std::find(lastMove.moveTypes.begin(), lastMove.moveTypes.end(), Move::MoveTypes::PROMOTION) != lastMove.moveTypes.end())
     {
-      board[lastMove.from] = Board::PAWN | (isWhiteTurn ? 0 : Board::COLOR);
+      board[lastMove.from] = Board::PAWN | (isWhiteTurn ? 0 : Board::BLACK);
     }
     else
     {
-      board[lastMove.from] = lastMove.pieceType | (isWhiteTurn ? 0 : Board::COLOR);
+      board[lastMove.from] = lastMove.pieceType | (isWhiteTurn ? 0 : Board::BLACK);
     }
 
 

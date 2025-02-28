@@ -273,18 +273,14 @@ namespace Move
           else if (disambig[0] >= '1' && disambig[0] <= '8')
             disambiguationRank = disambig[0] - '1';  // Store rank
         }
-        else if (disambig.length() == 2)
+        else if (disambig.length() == 2 && 
+                disambig[0] >= 'a' && disambig[0] <= 'h' && 
+                disambig[1] >= '1' && disambig[1] <= '8')
         {
           // Both file and rank provided (e.g., "Rh1e1")
-          if (disambig[0] >= 'a' && disambig[0] <= 'h' && 
-              disambig[1] >= '1' && disambig[1] <= '8')
-          {
-            int file = disambig[0] - 'a';
-            int rank = disambig[1] - '1';
-            from = rank * 8 + file;  // Keep the exact square in from
-            disambiguationFile = file;
-            disambiguationRank = rank;
-          }
+          // Only set these if they were explicitly provided in the notation
+          disambiguationFile = disambig[0] - 'a';
+          disambiguationRank = disambig[1] - '1';
         }
       }
     }
@@ -325,34 +321,39 @@ namespace Move
     
     // Handle castling first
     if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::SHORT_CASTLE) != moveTypes.end()) {
-      return "O-O";
+        return "O-O";
     }
     if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::LONG_CASTLE) != moveTypes.end()) {
-      return "O-O-O";
+        return "O-O-O";
     }
 
     // Add piece type for non-pawn pieces
     if (pieceType != PieceType::PAWN) {
-      switch (pieceType) {
-        case PieceType::KNIGHT: result += 'N'; break;
-        case PieceType::BISHOP: result += 'B'; break;
-        case PieceType::ROOK: result += 'R'; break;
-        case PieceType::QUEEN: result += 'Q'; break;
-        case PieceType::KING: result += 'K'; break;
-        default: break;
-      }
-
-      // Add disambiguation
-      result += getDisambiguationString();
+        switch (pieceType) {
+            case PieceType::KNIGHT: result += 'N'; break;
+            case PieceType::BISHOP: result += 'B'; break;
+            case PieceType::ROOK: result += 'R'; break;
+            case PieceType::QUEEN: result += 'Q'; break;
+            case PieceType::KING: result += 'K'; break;
+            default: break;
+        }
+        
+        // Only add disambiguation if explicitly needed (when disambiguationFile or disambiguationRank are set)
+        if (disambiguationFile >= 0) {
+            result += (char)('a' + disambiguationFile);
+        }
+        if (disambiguationRank >= 0) {
+            result += (char)('1' + disambiguationRank);
+        }
     } 
     // For pawn captures, add the starting file
     else if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::CAPTURE) != moveTypes.end() && from >= 0) {
-      result += (char)('a' + from);
+        result += (char)('a' + (from % 8));
     }
 
     // Add capture symbol
     if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::CAPTURE) != moveTypes.end()) {
-      result += 'x';
+        result += 'x';
     }
 
     // Add destination square
@@ -363,14 +364,14 @@ namespace Move
 
     // Add promotion piece
     if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::PROMOTION) != moveTypes.end()) {
-      result += '=';
-      switch (promotionTo) {
-        case PieceType::KNIGHT: result += 'N'; break;
-        case PieceType::BISHOP: result += 'B'; break;
-        case PieceType::ROOK: result += 'R'; break;
-        case PieceType::QUEEN: result += 'Q'; break;
-        default: break;
-      }
+        result += '=';
+        switch (promotionTo) {
+            case PieceType::KNIGHT: result += 'N'; break;
+            case PieceType::BISHOP: result += 'B'; break;
+            case PieceType::ROOK: result += 'R'; break;
+            case PieceType::QUEEN: result += 'Q'; break;
+            default: break;
+        }
     }
 
     return result;

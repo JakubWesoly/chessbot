@@ -26,6 +26,12 @@ namespace Brain
     // }
 
     // this->testBoard.makeMove(move);
+    std::cout << "QUEEN MOVES: " << std::endl;
+    for (auto &move : realBoard.getAllQueenMoves())
+      {
+      std::cout << move.toString() << " " << move.to << std::endl;
+    }
+
     bool success = this->realBoard.makeMove(move);
 
     if(success) {
@@ -66,22 +72,24 @@ namespace Brain
     // std::cout << "WG BOTA TURA: " << (this->testBoard.isWhiteTurn ? "BIALEGO" : "CZARNEGO") << "\n";
     auto moves = this->testBoard.getAllValidMoves();
 
-    std::cout << "size: " << moves.size() << std::endl;
-    for (auto &move : moves)
-    {
-      std::cout << move.toString() << " " << move.to << std::endl;
-    }
+    // std::cout << "size: " << moves.size() << std::endl;
+    // for (auto &move : moves)
+    // {
+    //   std::cout << move.toString() << " " << move.to << std::endl;
+    // }
 
     double bestScore = -1000000;
     Move::Move bestMove(true);
 
     for (auto &move : moves)
     {
-      std::cout << "WG BOTA TURA: " << (this->testBoard.isWhiteTurn ? "BIALEGO" : "CZARNEGO") << "\n";
+      // std::cout << "WG BOTA TURA: " << (this->testBoard.isWhiteTurn ? "BIALEGO" : "CZARNEGO") << "\n";
 
       // auto xd = this->testBoard.getAllValidMoves();
 
-      std::cout <<"KRUWAAA: " << move.toString() << "\n";
+
+
+      // std::cout <<"KRUWAAA: " << move.toString() << "\n";
 
     //   for (auto &move : xd)
     // {
@@ -355,7 +363,7 @@ namespace Brain
 
     for (int i = kingPosition + 14; i >= kingPosition - 18; i--)
     {
-      if (!Board::Board::checkIfFitsInBoard(i) || this->testBoard.getPiece(i) <= (Board::Board::PAWN | Board::Board::COLOR))
+      if (!Board::Board::checkIfFitsInBoard(i) || this->testBoard.getPiece(i) <= (Board::Board::PAWN | Board::Board::BLACK))
         continue;
 
       // It is often said that a knight is king's best defender therefore the value is higher
