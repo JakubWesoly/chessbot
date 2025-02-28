@@ -32,30 +32,40 @@ namespace Move
   {
   public:
     // Type of piece that was moved
-    PieceType pieceType;
+    PieceType pieceType = PieceType::NONE;
 
-    // An optional argument to specify the starting file or rank of the piece being moved if the move is ambiguous
+    // The exact square index where the piece is moving from (if known)
     int from = -1;
 
+    // Disambiguation information (file 0-7 or -1 if not specified)
+    int disambiguationFile = -1;
+
+    // Disambiguation information (rank 0-7 or -1 if not specified)
+    int disambiguationRank = -1;
+
     // The square the piece is moving to
-    int to;
+    int to = -1;
 
     // The type of move
     std::vector<MoveTypes> moveTypes;
 
     bool isValid = true;
-    int promotionTo = -1;
-    int caputredPiece = -1;
+    PieceType promotionTo = PieceType::NONE;
+    int capturedPiece = -1;
 
-    // Move(PieceType pieceType, char from, char to[]);
+    Move() = default;
     Move(const std::string &move);
     Move(int from, int to, PieceType pieceType, std::vector<MoveTypes> moveTypes);
     Move(int from, int to, PieceType pieceType, std::vector<MoveTypes> moveTypes, PieceType promotionTo);
     Move(bool isValid);
+    std::string toString() const;
+
+  private:
     void setPieceType(const std::string &move);
     bool checkAndSetCastle(const std::string &move);
     int getSquareIndex(const std::string &move);
-    std::string toString() const;
+    void handleDisambiguation(const std::string &move, size_t x_pos);
+    std::string getDisambiguationString() const;
   };
 } // namespace Move
 

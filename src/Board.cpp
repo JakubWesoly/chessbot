@@ -49,8 +49,8 @@ namespace Board
       {'R', Board::ROOK},
       {'q', Board::QUEEN | Board::COLOR},
       {'Q', Board::QUEEN},
-      {'K', Board::KING | Board::COLOR},
-      {'k', Board::KING},
+      {'k', Board::KING | Board::COLOR},
+      {'K', Board::KING},
     };
 
     // Reset board
@@ -109,7 +109,7 @@ namespace Board
     {
       if (std::find(checkedMove.moveTypes.begin(), checkedMove.moveTypes.end(), Move::MoveTypes::CAPTURE) != checkedMove.moveTypes.end())
       {
-        checkedMove.caputredPiece = board[checkedMove.to];
+        checkedMove.capturedPiece = board[checkedMove.to];
         fiftyMoveRuleCounter = 0;
       }
       isValidMove = makeRegularMove(checkedMove);
@@ -1937,12 +1937,12 @@ namespace Board
     }
 
 
-    if(lastMove.caputredPiece != -1) {
-      board[lastMove.to] = lastMove.caputredPiece | (!isWhiteTurn);
+    if(lastMove.capturedPiece != -1) {
+      board[lastMove.to] = lastMove.capturedPiece | (!isWhiteTurn);
     } else {
       board[lastMove.to] = Board::NONE;
     }
-    // std::cout << "Dochodzinmy do konca : " << lastMove.caputredPiece << "\n";
+    // std::cout << "Dochodzinmy do konca : " << lastMove.capturedPiece << "\n";
     board[lastMove.from] = lastMove.pieceType | isWhiteTurn;
     isWhiteTurn = !isWhiteTurn;
 
