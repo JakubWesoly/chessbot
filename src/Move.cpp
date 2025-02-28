@@ -15,31 +15,33 @@ namespace Move
 
   Move::Move(const std::string &move)
   {
+    // Check what type of piece is moving
     setPieceType(move);
-    check_and_set_castle(move);
-
-    if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::SHORT_CASTLE) != moveTypes.end() ||
-        std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::LONG_CASTLE) != moveTypes.end())
-    {
+    
+    // Verifiaction Steps
+    // 1. Check if the move is a castle move, because it doesn't need further verification
+    if (checkAndSetCastle(move))
       return;
-    }
 
+    // 2. There is no move, that is shorter than 2 characters
     if (move.size() < 2)
     {
-      isVaild = false;
+      isValid = false;
       return;
     }
 
+    // 3. If there is a capture, then add the capture move type
     if (std::find(move.begin(), move.end(), 'x') != move.end())
     {
       moveTypes.push_back(MoveTypes::CAPTURE);
     }
 
+    // 4. If there is a promotion, then add the promotion move type 
     if (pieceType == PieceType::PAWN && std::find(move.begin(), move.end(), '=') != move.end())
     {
       moveTypes.push_back(MoveTypes::PROMOTION);
-      auto pawnPromotedTo = move.substr(move.size() - 1, 1);
-      switch (pawnPromotedTo[0])
+      char pawnPromotedTo = move.back();
+      switch (pawnPromotedTo)
       {
       case 'N':
         promotionTo = PieceType::KNIGHT;
@@ -54,15 +56,24 @@ namespace Move
         promotionTo = PieceType::ROOK;
         break;
       default:
-        promotionTo = PieceType::NONE;
+        promotionTo = PieceType::NONE; 
+        isValid = false;
         break;
       }
     }
 
+    // 5. Get where the piece is moving to
+    // When there is a promotion, the last two characters are the piece that is being promoted to
     if (pieceType == PieceType::PAWN && std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::PROMOTION) != moveTypes.end())
     {
+      if (move.size() < 4)
+      {
+        isValid = false;
+        return;
+      }
       to = getSquareIndex(move.substr(move.size() - 4, 2));
     }
+    // When there is no promotion, the last two characters are the piece that is being moved to
     else
     {
       to = getSquareIndex(move.substr(move.size() - 2, 2));
@@ -88,14 +99,14 @@ namespace Move
 
   Move::Move(bool isValid)
   {
-    this->isVaild = isValid;
+    this->isValid = isValid;
   }
 
   void Move::setPieceType(const std::string &move)
   {
-    if (sizeof(move) == 0)
+    if (move.empty())
     {
-      pieceType = PieceType::NONE;
+      throw std::invalid_argument("Move is empty");
       return;
     }
     switch (move[0])
@@ -121,47 +132,78 @@ namespace Move
       break;
 
     default:
-      pieceType = PieceType::PAWN;
+      if (move[0] >= 'a' && move[0] <= 'h')
+      {
+        pieceType = PieceType::PAWN;
+      }
+      else
+      {
+        pieceType = PieceType::NONE;
+      }
       break;
     }
   }
 
-  void Move::check_and_set_castle(const std::string &move)
+  bool Move::checkAndSetCastle(const std::string &move)
   {
-    if (sizeof(move) == 0)
+    if (move.empty())
     {
-      // throw an error
-      return;
+      return false;
     }
     if (move == "O-O")
     {
       moveTypes.push_back(MoveTypes::SHORT_CASTLE);
       pieceType = PieceType::KING;
+      return true;
     }
     else if (move == "O-O-O")
     {
       moveTypes.push_back(MoveTypes::LONG_CASTLE);
       pieceType = PieceType::KING;
+      return true;
     }
+    return false;
   }
 
   int Move::getSquareIndex(const std::string &move)
   {
-    if (sizeof(move) == 0)
+    if (move.empty())
     {
-      // throw an error
-      return -1;
+      throw std::invalid_argument("Move is empty");
     }
-    return move[0] - 'a' + 8 * (move[1] - '1');
+
+    if (move.size() != 2) 
+    {
+    throw std::invalid_argument("Invalid square format: " + move);
+    }
+
+    if (move[0] < 'a' || move[0] > 'h' || move[1] < '1' || move[1] > '8') {
+    throw std::invalid_argument("Invalid chess square: " + move);
+    }
+
+    // Convert the move to a square index
+    return (move[1] - '1') * 8 + (move[0] - 'a');
   }
 
   std::string Move::toString() const
   {
     std::string move = "";
+
+    bool isCapture = std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::CAPTURE) != moveTypes.end();
+    bool isPromotion = std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::PROMOTION) != moveTypes.end();
+    bool isShortCastle = std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::SHORT_CASTLE) != moveTypes.end();
+    bool isLongCastle = std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::LONG_CASTLE) != moveTypes.end();
+
+    // If the move is a castle move, return the castle move
+    if (isShortCastle)
+      return "O-O";
+    else if (isLongCastle)
+        return "O-O-O";
+
+
+    // Add the piece type to the move
     switch (pieceType)
     {
-    case PieceType::PAWN:
-      break;
     case PieceType::KNIGHT:
       move += "N";
       break;
@@ -175,32 +217,32 @@ namespace Move
       move += "Q";
       break;
     case PieceType::KING:
-      if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::SHORT_CASTLE) != moveTypes.end())
-        return "O-O";
-      else if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::LONG_CASTLE) != moveTypes.end())
-        return "O-O-O";
-      else
-        move += "K";
+      move += "K";
       break;
     default:
       break;
     }
 
-    if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::CAPTURE) != moveTypes.end())
+    // Add the capture move type
+    if (isCapture)
     {
       if (pieceType == PieceType::PAWN)
-        move += from % 8 + 'a';
+      {
+        move += static_cast<char>(from % 8 + 'a');
+      }
+
       move += "x";
     }
 
+    // Add the square that the piece is moving to
     if (to != -1)
     {
       // int fromCopy = from;
       move += static_cast<char>(to % 8 + 'a');
-      move += to / 8 + '1';
+      move += static_cast<char>(to / 8 + '1');
     }
 
-    if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::PROMOTION) != moveTypes.end())
+    if (isPromotion)
     {
       switch (promotionTo)
       {

@@ -1,0 +1,3 @@
+"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\ChessbotTests.dir/objects.a
+C:\ProgramData\mingw64\mingw64\bin\ar.exe qc CMakeFiles\ChessbotTests.dir/objects.a @CMakeFiles\ChessbotTests.dir\objects1.rsp
+C:\ProgramData\mingw64\mingw64\bin\c++.exe -Wl,--whole-archive CMakeFiles\ChessbotTests.dir/objects.a -Wl,--no-whole-archive -o ChessbotTests.exe -Wl,--out-implib,libChessbotTests.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\ChessbotTests.dir\linkLibs.rsp

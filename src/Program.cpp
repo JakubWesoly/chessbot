@@ -10,43 +10,39 @@ namespace Program
 {
   void run()
   {
-    Brain::Brain bot("r1bk3r/p2pBpNp/n4n2/1p1NP2P/6P1/3P4/P1P1K3/q5b1");
+    Brain::Brain bot;
 
     Menu::init();
 
-    Menu::print_board(bot.realBoard);
-
-    bool isPlayerBlocked = true;
+    Menu::printBoard(bot.realBoard);
 
     while (true)
     {
-        std::string moveStr = Menu::get_move();
+        std::string moveStr = Menu::getMove();
 
-        std::cout << moveStr << std::endl;
+        std::cout << moveStr << "\n";
 
         Move::Move move(moveStr);
 
-        std::cout << move.to << std::endl;
+        std::cout << move.to << "\n";
 
         bool isValidMove = bot.makeRealMove(move);
 
-        std::cout << "Your move is: " << (isValidMove ? "valid" : "invalid") << std::endl;
+        std::cout << "Your move is: " << (isValidMove ? "valid" : "invalid") << "\n";
         
 
       if(isValidMove) {
         Move::Move botsMove = bot.findBestMove();
 
         std::cout
-            << "Evaluation: " << bot.evaluatePosition() << std::endl
-            << "Bot's move: " << botsMove.toString() << std::endl;
+            << "Evaluation: " << bot.evaluatePosition() << "\n"
+            << "Bot's move: " << botsMove.toString() << "\n";
 
         bot.makeRealMove(botsMove);
       }
 
 
-      Menu::print_board(bot.realBoard);
-
-      isPlayerBlocked = false;
+      Menu::printBoard(bot.realBoard);
     }
   }
 } // namespace Program

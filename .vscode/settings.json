@@ -55,6 +55,24 @@
     "xtr1common": "cpp",
     "xutility": "cpp",
     "unordered_map": "cpp",
-    "xhash": "cpp"
+    "xhash": "cpp",
+    "any": "cpp",
+    "chrono": "cpp",
+    "condition_variable": "cpp",
+    "deque": "cpp",
+    "forward_list": "cpp",
+    "functional": "cpp",
+    "iomanip": "cpp",
+    "list": "cpp",
+    "map": "cpp",
+    "mutex": "cpp",
+    "ratio": "cpp",
+    "set": "cpp",
+    "sstream": "cpp",
+    "stop_token": "cpp",
+    "thread": "cpp",
+    "unordered_set": "cpp",
+    "variant": "cpp",
+    "xtree": "cpp"
   }
 }

@@ -7,8 +7,8 @@
 namespace Menu
 {
   void init();
-  std::string get_move();
-  void print_board(const Board::Board &board);
+  std::string getMove();
+  void printBoard(const Board::Board &board);
 } // namespace Menu
 
 #endif // MENU_HPP

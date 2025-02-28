@@ -1,0 +1,1 @@
+-isystem "C:/Users/Kuba/dev/chessbot/build/_deps/googletest-src/googlemock/include" -isystem "C:/Users/Kuba/dev/chessbot/build/_deps/googletest-src/googlemock" -isystem "C:/Users/Kuba/dev/chessbot/build/_deps/googletest-src/googletest/include" -isystem "C:/Users/Kuba/dev/chessbot/build/_deps/googletest-src/googletest"

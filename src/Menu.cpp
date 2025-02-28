@@ -22,7 +22,7 @@ namespace Menu
               << "\n";
   }
 
-  std::string get_move()
+  std::string getMove()
   {
     std::string move;
     std::cout << "Enter a move: ";
@@ -30,7 +30,7 @@ namespace Menu
     return move;
   }
 
-  void print_board(const Board::Board &board)
+  void printBoard(const Board::Board &board)
   {
     std::cout << (board.isWhiteTurn ? "White" : "Black") << " turn\n\n";
     std::cout << "GAME STATE: "

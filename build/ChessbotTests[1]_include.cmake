@@ -1,0 +1,5 @@
+if(EXISTS "C:/Users/Kuba/dev/chessbot/build/ChessbotTests[1]_tests.cmake")
+  include("C:/Users/Kuba/dev/chessbot/build/ChessbotTests[1]_tests.cmake")
+else()
+  add_test(ChessbotTests_NOT_BUILT ChessbotTests_NOT_BUILT)
+endif()

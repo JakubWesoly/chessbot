@@ -79,6 +79,7 @@ namespace Board
         boardPointer++;
       }
     }
+    
   }
 
   bool Board::makeMove(const Move::Move &move)
@@ -88,7 +89,7 @@ namespace Board
 
     Move::Move checkedMove = isValidMove(move);
 
-    if (!checkedMove.isVaild) {
+    if (!checkedMove.isValid) {
       std::cout << "iswhiteturn: " << isWhiteTurn << "\n";
       std::cout << "NIEPOPRAWNY RYCH????" << "\n";
       return false;
@@ -180,7 +181,7 @@ namespace Board
           for (const auto &move : movesList)
           {
             Move::Move checkedMove = isValidMove(move);
-            if (checkedMove.isVaild)
+            if (checkedMove.isValid)
             {
               if (doesMoveCauseCheck(checkedMove))
                 continue;
@@ -215,7 +216,7 @@ namespace Board
           for (const auto &move : movesList)
           {
             Move::Move checkedMove = isValidMove(move);
-            if (checkedMove.isVaild)
+            if (checkedMove.isValid)
             {
               if (doesMoveCauseCheck(checkedMove))
                 continue;
@@ -251,7 +252,7 @@ namespace Board
           for (const auto &move : movesList)
           {
             Move::Move checkedMove = isValidMove(move);
-            if (checkedMove.isVaild)
+            if (checkedMove.isValid)
             {
 
               if (doesMoveCauseCheck(checkedMove))
@@ -277,7 +278,7 @@ namespace Board
           for (const auto &move : movesList)
           {
             Move::Move checkedMove = isValidMove(move);
-            if (checkedMove.isVaild)
+            if (checkedMove.isValid)
             {
 
               if (doesMoveCauseCheck(checkedMove))
@@ -474,7 +475,7 @@ namespace Board
 
     Move::Move correctMove = checkIfAmbiguous(checkedMoves);
 
-    if (!correctMove.isVaild)
+    if (!correctMove.isValid)
       return Move::Move(false);
 
     if (doesMoveCauseCheck(correctMove))

@@ -43,7 +43,7 @@ namespace Move
     // The type of move
     std::vector<MoveTypes> moveTypes;
 
-    bool isVaild = true;
+    bool isValid = true;
     int promotionTo = -1;
     int caputredPiece = -1;
 
@@ -53,7 +53,7 @@ namespace Move
     Move(int from, int to, PieceType pieceType, std::vector<MoveTypes> moveTypes, PieceType promotionTo);
     Move(bool isValid);
     void setPieceType(const std::string &move);
-    void check_and_set_castle(const std::string &move);
+    bool checkAndSetCastle(const std::string &move);
     int getSquareIndex(const std::string &move);
     std::string toString() const;
   };

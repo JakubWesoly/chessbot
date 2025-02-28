@@ -95,7 +95,7 @@ namespace Brain
       
       
       // std::cout <<"BOARD PO TESCIE " << "\n";
-      // Menu::print_board(this->testBoard);
+      // Menu::printBoard(this->testBoard);
       
       // std::cout << "PO WSZYSTKIM WG BOTA TURA: " << (this->testBoard.isWhiteTurn ? "BIALEGO" : "CZARNEGO") << "\n\n\n\n";
     // std::cout << "TESTUJE RUCH: " << move.toString() << std::endl;

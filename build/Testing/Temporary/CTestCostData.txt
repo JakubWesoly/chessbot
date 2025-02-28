@@ -1,0 +1,9 @@
+BoardTest.DefaultPositionFEN 0 0
+BoardTest.EmptyBoardFEN 1 0.0060727
+BoardTest.CustomPositionFEN 0 0
+BoardTest.InvalidFENCharacter 1 0.0173443
+BoardTest.InvalidFENFormat 0 0
+---
+BoardTest.DefaultPositionFEN
+BoardTest.CustomPositionFEN
+BoardTest.InvalidFENFormat
