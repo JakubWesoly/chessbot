@@ -35,7 +35,8 @@ target_compile_options(Chessbot PRIVATE -Wall -Wextra -pedantic)
 target_include_directories(Chessbot PUBLIC include)
 
 set(TESTS
-    # tests/BoardTests.cpp
+    tests/BoardTests.cpp
+    tests/BoardKnightTest.cpp
     tests/MoveTests.cpp
 )
 

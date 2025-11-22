@@ -113,6 +113,13 @@ namespace Move
       }
   }
 
+  Move::Move(const std::string& moveFrom, const std::string& moveTo) {
+    int from = Move::getSquareIndex(moveFrom);
+    int to = Move::getSquareIndex(moveTo);
+
+    std::cout << from << " " << to << "\n";
+  }
+
   Move::Move(int from, int to, PieceType pieceType, std::vector<MoveTypes> moveTypes)
   {
     this->from = from;
@@ -278,9 +285,11 @@ namespace Move
                 disambig[1] >= '1' && disambig[1] <= '8')
         {
           // Both file and rank provided (e.g., "Rh1e1")
-          // Only set these if they were explicitly provided in the notation
-          disambiguationFile = disambig[0] - 'a';
-          disambiguationRank = disambig[1] - '1';
+          int file = disambig[0] - 'a';
+          int rank = disambig[1] - '1';
+          from = rank * 8 + file;  // Calculate the full square index
+          disambiguationFile = file;
+          disambiguationRank = rank;
         }
       }
     }
@@ -347,8 +356,11 @@ namespace Move
         }
     } 
     // For pawn captures, add the starting file
-    else if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::CAPTURE) != moveTypes.end() && from >= 0) {
-        result += (char)('a' + (from % 8));
+    else if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::CAPTURE) != moveTypes.end()) {
+        // For pawn captures, we should use the disambiguationFile which stores the source file
+        if (disambiguationFile >= 0) {
+            result += (char)('a' + disambiguationFile);
+        }
     }
 
     // Add capture symbol
@@ -357,10 +369,10 @@ namespace Move
     }
 
     // Add destination square
-    char file = static_cast<char>('a' + (to % 8));
-    char rank = static_cast<char>('1' + (to / 8));
-    result += file;
-    result += rank;
+    if (to >= 0 && to < 64) {
+        result += (char)('a' + (to % 8));
+        result += (char)('1' + (to / 8));
+    }
 
     // Add promotion piece
     if (std::find(moveTypes.begin(), moveTypes.end(), MoveTypes::PROMOTION) != moveTypes.end()) {

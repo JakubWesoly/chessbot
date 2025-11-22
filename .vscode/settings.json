@@ -73,6 +73,7 @@
     "thread": "cpp",
     "unordered_set": "cpp",
     "variant": "cpp",
-    "xtree": "cpp"
+    "xtree": "cpp",
+    "*.tcc": "cpp"
   }
 }

@@ -7,7 +7,7 @@
 namespace Menu
 {
   void init();
-  std::string getMove();
+  std::pair<std::string, std::string> getMove();
   void printBoard(const Board::Board &board);
 } // namespace Menu
 

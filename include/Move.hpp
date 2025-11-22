@@ -54,7 +54,8 @@ namespace Move
     int capturedPiece = -1;
 
     Move() = default;
-    Move(const std::string &move);
+    Move(const std::string& move);
+    Move(const std::string& moveFrom, const std::string& moveTo);
     Move(int from, int to, PieceType pieceType, std::vector<MoveTypes> moveTypes);
     Move(int from, int to, PieceType pieceType, std::vector<MoveTypes> moveTypes, PieceType promotionTo);
     Move(bool isValid);

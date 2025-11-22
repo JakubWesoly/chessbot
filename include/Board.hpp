@@ -151,7 +151,7 @@ namespace Board
     void setToDefault();
     void setFromFEN(const std::string& FEN);
 
-    // board[0] = a1
+    // board[0] = a8
     unsigned long long board[64] = {0};
 
     bool hasWhiteKingMoved = false;

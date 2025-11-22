@@ -22,12 +22,12 @@ namespace Menu
               << "\n";
   }
 
-  std::string getMove()
+  std::pair<std::string, std::string> getMove()
   {
-    std::string move;
+    std::string moveFrom, moveTo;
     std::cout << "Enter a move: ";
-    std::cin >> move;
-    return move;
+    std::cin >> moveFrom >> moveTo;
+    return std::make_pair(moveFrom, moveTo);
   }
 
   void printBoard(const Board::Board &board)
@@ -46,7 +46,7 @@ namespace Menu
       std::cout << 8 - i << "| ";
       for (int j = 0; j < 8; j++)
       {
-        auto tileIndex = 56 - i * 8 + j;
+        auto tileIndex = i * 8 + j;
         auto tile = board.board[tileIndex];
 
         if (tile == 0)

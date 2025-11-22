@@ -1,9 +1,37 @@
 #include "Board.hpp"
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <iostream>
 #include <unordered_map>
+
+namespace {
+  std::array<std::string, 6> splitFENSections(const std::string &fen) {
+    std::array<std::string, 6> sections{};
+    size_t start = 0;
+
+    for (size_t idx = 0; idx < sections.size(); ++idx) {
+      const bool isLastSection = idx == sections.size() - 1;
+      const size_t delimPos = isLastSection ? std::string::npos : fen.find(' ', start);
+
+      if (delimPos == std::string::npos) {
+        sections[idx] = fen.substr(start);
+        start = std::string::npos;
+      } else {
+        sections[idx] = fen.substr(start, delimPos - start);
+        start = delimPos + 1;
+      }
+
+      if (start == std::string::npos) {
+        // No more sections, leave the remaining entries empty.
+        break;
+      }
+    }
+
+    return sections;
+  }
+}
 
 namespace Board
 {
@@ -18,19 +46,18 @@ namespace Board
 
     for (int i = 0; i < 8; i++)
     {
-      board[i] = pieceSet[i];
-      board[i + 56] = Board::BLACK | pieceSet[i];
+      board[i] = Board::BLACK | pieceSet[i];
+      board[i + 56] = pieceSet[i];
+
+      board[i + 8] = Board::BLACK | Board::PAWN;
+      board[i + 48] = Board::PAWN;
+
       pieceSets.first.push_back(pieceSet[i]);
       pieceSets.second.push_back(pieceSet[i]);
+      pieceSets.first.push_back(Board::PAWN);
+      pieceSets.second.push_back(Board::PAWN);
     }
 
-    for (int i = 8; i < 16; i++)
-    {
-      board[i] = Board::PAWN;
-      board[i + 40] = Board::BLACK | Board::PAWN;
-      pieceSets.first.push_back(pieceSet[i]);
-      pieceSets.second.push_back(pieceSet[i]);
-    }
 
     currentWhiteKingPosition = 4;
     currentBlackKingPosition = 60;
@@ -53,47 +80,98 @@ namespace Board
       {'K', Board::KING},
     };
 
+    const auto fenSections = splitFENSections(FEN);
+    const std::string &boardState = fenSections[0];
+    const std::string &sideToMove = fenSections[1];
+    const std::string &castlingRights = fenSections[2];
+    const std::string &enPassant = fenSections[3];
+    const std::string &fiftyMoveRuleCount = fenSections[4];
+    const std::string &moveCount = fenSections[5];
+
+    std::cout << "||" << boardState << "||\n";
+    std::cout << "||" << sideToMove << "||\n";
+    std::cout << "||" << castlingRights << "||\n";
+    std::cout << "||" << enPassant << "||\n";
+    std::cout << "||" << fiftyMoveRuleCount << "||\n";
+    std::cout << "||" << moveCount << "||\n";
+
+
     // Reset board
     for(int i = 0; i < 64; i++) {
       board[i] = Board::NONE;
     }
-    
-    // Start from a8 (top-left square)
-    int boardPointer = 56;
-    size_t i = 0;
-    while(i < FEN.length() && FEN[i] != ' ') {
-      char character = FEN[i++];
-      if(character == '/') {
-        boardPointer -= 16;
+
+    // STEP 1: LOAD IN BOARD STATE
+    size_t column = 0;
+    size_t row = 0;
+
+    for(char symbol : boardState) {
+      if(symbol == '/') {
+        ++row;
+        column = 0;
       }
-      else if(character >= '1' && character <= '8') {
-        boardPointer += character - '0';
+      else if((symbol - '0') >= 0 && (symbol - '0') <= 8) {
+        column += (symbol - '0');
+      }
+      else if(translationTable.find(symbol) != translationTable.end()) {
+        board[column + (row * 8)] = translationTable.at(symbol);
+        ++column;
       } else {
-        // Check if provided FEN has invalid characters or if boardPointer is out of bounds
-        if(translationTable.find(character) == translationTable.end()
-           || !(boardPointer < 64 && boardPointer >= 0)) {
-          std::cerr << "Invalid FEN notation\n";
-          exit(1);
-        }
-        board[boardPointer] = translationTable.at(character);
-        boardPointer++;
+        std::cout << symbol << std::endl;
+        throw "Illegal FEN symbol in position part";
       }
     }
-    
+
+    // STEP 2: Side to move
+    if(sideToMove == "w") {
+      this->isWhiteTurn = true;
+    }
+    else if(sideToMove == "b") {
+      this->isWhiteTurn = false;
+    }
+    else {
+      throw "Illegal FEN symbol in side to move part";
+    }
+
+    // STEP 3: Castling rights
+    if(castlingRights.find("K") != std::string::npos) {
+      this->hasWhiteKingMoved = false;
+      this->hasWhiteRookHMoved = false;
+    }
+    if(castlingRights.find("k") != std::string::npos) {
+      this->hasBlackKingMoved = false;
+      this->hasBlackRookHMoved = false;
+    }
+    if(castlingRights.find("Q") != std::string::npos) {
+      this->hasWhiteKingMoved = false;
+      this->hasWhiteRookAMoved = false;
+    }
+    if(castlingRights.find("q") != std::string::npos) {
+      this->hasBlackKingMoved = false;
+      this->hasBlackRookAMoved = false;
+    }
+
+    // STEP 4: En Passant
+    // STEP 5: Fifty move rule
+    // STEP 6: Move count
+    // TBD
   }
 
   bool Board::makeMove(const Move::Move &move)
   {
+    // List all possible moves for debug
+    std::vector<Move::Move> moves = getAllValidMoves();
+    std::cout << "Possible moves: " << moves.size() << std::endl;
+    for (const auto &m : moves) {
+      std::cout << m.toString() << std::endl;
+    }
     if (gameState == GameState::CHECKMATE || gameState == GameState::STALEMATE || gameState == GameState::RESIGNATION || gameState == GameState::THREEFOLD_REPETITION || gameState == GameState::FIFTY_MOVE_RULE || gameState == GameState::INSUFFICIENT_MATERIAL)
       return false;
 
     Move::Move checkedMove = isValidMove(move);
 
     if (!checkedMove.isValid) {
-      // std::cout << "iswhiteturn: " << isWhiteTurn << "\n";
-      // std::cout << "NIEPOPRAWNY RYCH????" << "\n";
       return false;
-
     }
     bool isValidMove;
 
@@ -233,62 +311,28 @@ namespace Board
   std::vector<Move::Move> Board::getAllKnightMoves()
   {
     std::vector<Move::Move> moves;
+    moves.reserve(16);  // Reasonable estimate for max knight moves
+    
+    const int knightOffsets[] = {17, 15, 10, 6, -17, -15, -10, -6};
+    const int targetPiece = isWhiteTurn ? Board::KNIGHT : (Board::KNIGHT | Board::BLACK);
+    
     for (int i = 0; i < 64; i++)
     {
-      if (isWhiteTurn)
-      {
-        if (board[i] == (Board::KNIGHT))
+        if (board[i] == targetPiece)
         {
-          Move::Move movesList[] = {
-              Move::Move(i, i + 17, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i + 15, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i + 10, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i + 6, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 17, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 15, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 10, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 6, Move::PieceType::KNIGHT, {}),
-          };
-          for (const auto &move : movesList)
-          {
-            Move::Move checkedMove = isValidMove(move);
-            if (checkedMove.isValid)
+            for (int offset : knightOffsets)
             {
-
-              if (doesMoveCauseCheck(checkedMove))
-                continue;
-              moves.push_back(checkedMove);
+                Move::Move candidateMove(i, i + offset, Move::PieceType::KNIGHT, {});
+                Move::Move checkedMove = isValidMove(candidateMove);
+                
+                if (checkedMove.isValid && !doesMoveCauseCheck(checkedMove))
+                {
+                    moves.push_back(checkedMove);
+                }
             }
-          }
         }
-      }
-      else
-      {
-        if (board[i] == (Board::KNIGHT | Board::BLACK))
-        {
-          Move::Move movesList[] = {
-              Move::Move(i, i + 17, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i + 15, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i + 10, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i + 6, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 17, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 15, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 10, Move::PieceType::KNIGHT, {}),
-              Move::Move(i, i - 6, Move::PieceType::KNIGHT, {})};
-          for (const auto &move : movesList)
-          {
-            Move::Move checkedMove = isValidMove(move);
-            if (checkedMove.isValid)
-            {
-
-              if (doesMoveCauseCheck(checkedMove))
-                continue;
-              moves.push_back(checkedMove);
-            }
-          }
-        }
-      }
     }
+    
     return moves;
   }
 
@@ -1598,55 +1642,52 @@ namespace Board
 
   bool Board::makeRegularMove(const Move::Move &move)
   {
+    const bool movingWhite = isWhiteTurn;
+    const int movingPieceValue = move.pieceType | (!movingWhite);
+    const bool isPromotion = std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::PROMOTION) != move.moveTypes.end();
+    const int placedPieceValue = isPromotion ? (move.promotionTo | (!movingWhite)) : movingPieceValue;
+    const int capturedPiece = board[move.to];
 
     board[move.from] = Board::NONE;
-    board[move.to] = move.pieceType | (!isWhiteTurn);
+    board[move.to] = placedPieceValue;
 
-    if (isWhiteTurn)
-    {
-      std::cout << "WK Controlled by: " << isSquareControled(currentWhiteKingPosition) << "\n";
-      if (isSquareControled(currentWhiteKingPosition) != -1)
-      {
-        board[move.from] = move.pieceType | (!isWhiteTurn);
-        board[move.to] = Board::NONE;
-        return false;
-      }
-    }
-    else
-    {
-      std::cout << "BK Controlled by: " << isSquareControled(currentBlackKingPosition) << "\n";
-      if (isSquareControled(currentBlackKingPosition) != -1)
-      {
-        board[move.from] = move.pieceType | (!isWhiteTurn);
-        board[move.to] = Board::NONE;
-        return false;
-      }
-    }
-
+    int enPassantCapturedSquare = -1;
+    int enPassantCapturedPiece = Board::NONE;
     if (std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::EN_PASSANT) != move.moveTypes.end())
     {
-      if (isWhiteTurn)
-        board[move.to + Board::DOWN] = Board::NONE;
-      else
-        board[move.to + Board::UP] = Board::NONE;
+      enPassantCapturedSquare = movingWhite ? move.to + Board::DOWN : move.to + Board::UP;
+      enPassantCapturedPiece = board[enPassantCapturedSquare];
+      board[enPassantCapturedSquare] = Board::NONE;
     }
 
-    if (std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::PROMOTION) != move.moveTypes.end())
+    int &kingPosition = movingWhite ? currentWhiteKingPosition : currentBlackKingPosition;
+    const int originalKingPosition = kingPosition;
+    if (move.pieceType == Move::PieceType::KING)
     {
-      board[move.to] = move.promotionTo | (!isWhiteTurn);
+      kingPosition = move.to;
+    }
+
+    if (isSquareControled(kingPosition) != -1)
+    {
+      board[move.from] = movingPieceValue;
+      board[move.to] = capturedPiece;
+      if (enPassantCapturedSquare != -1)
+      {
+        board[enPassantCapturedSquare] = enPassantCapturedPiece;
+      }
+      kingPosition = originalKingPosition;
+      return false;
     }
 
     if (move.pieceType == Move::PieceType::KING)
     {
-      if (isWhiteTurn)
+      if (movingWhite)
       {
         hasWhiteKingMoved = true;
-        currentWhiteKingPosition = move.to;
       }
       else
       {
         hasBlackKingMoved = true;
-        currentBlackKingPosition = move.to;
       }
     }
 
@@ -1655,24 +1696,40 @@ namespace Board
 
   bool Board::doesMoveCauseCheck(const Move::Move &move)
   {
+    const bool movingWhite = isWhiteTurn;
+    const int movingPieceValue = move.pieceType | (!movingWhite);
+    const bool isPromotion = std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::PROMOTION) != move.moveTypes.end();
+    const int placedPieceValue = isPromotion ? (move.promotionTo | (!movingWhite)) : movingPieceValue;
+    const int capturedPiece = board[move.to];
+
     board[move.from] = Board::NONE;
+    board[move.to] = placedPieceValue;
 
-    auto bufferPiece = getPiece(move.to);
+    int enPassantCapturedSquare = -1;
+    int enPassantCapturedPiece = Board::NONE;
+    if (std::find(move.moveTypes.begin(), move.moveTypes.end(), Move::MoveTypes::EN_PASSANT) != move.moveTypes.end())
+    {
+      enPassantCapturedSquare = movingWhite ? move.to + Board::DOWN : move.to + Board::UP;
+      enPassantCapturedPiece = board[enPassantCapturedSquare];
+      board[enPassantCapturedSquare] = Board::NONE;
+    }
 
-    board[move.to] = move.pieceType | (!isWhiteTurn);
+    int kingSquare = movingWhite ? currentWhiteKingPosition : currentBlackKingPosition;
+    if (move.pieceType == Move::PieceType::KING)
+    {
+      kingSquare = move.to;
+    }
 
+    const bool causesCheck = isSquareControled(kingSquare) != -1;
 
-    if (isSquareControled(isWhiteTurn ? currentWhiteKingPosition : currentBlackKingPosition) != -1)
-      {
-        board[move.from] = move.pieceType | (!isWhiteTurn);
-        board[move.to] = bufferPiece;
-        return true;
-      }
+    board[move.from] = movingPieceValue;
+    board[move.to] = capturedPiece;
+    if (enPassantCapturedSquare != -1)
+    {
+      board[enPassantCapturedSquare] = enPassantCapturedPiece;
+    }
 
-    board[move.from] = move.pieceType | (!isWhiteTurn);
-    board[move.to] = bufferPiece;
-
-    return false;
+    return causesCheck;
   }
 
 bool Board::checkIfCrossesBorder(int square1, int square2)
